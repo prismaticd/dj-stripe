@@ -172,17 +172,21 @@ class StripeModel(models.Model):
 			if field.name.startswith("djstripe_") or field.name in ignore_fields:
 				continue
 			if isinstance(field, models.ForeignKey):
-				# TODO (#681): Handle foreign keys automatically
-				# For now they're handled in hooks.
-				continue
-
-			if hasattr(field, "stripe_to_db"):
-				field_data = field.stripe_to_db(manipulated_data)
+				if issubclass(field.related_model, StripeModel):
+					field_data, _ = field.related_model._get_or_create_from_stripe_object(
+						manipulated_data, field.name
+					)
+				else:
+					# TODO - eg PaymentMethod
+					continue
 			else:
-				field_data = manipulated_data.get(field.name)
+				if hasattr(field, "stripe_to_db"):
+					field_data = field.stripe_to_db(manipulated_data)
+				else:
+					field_data = manipulated_data.get(field.name)
 
-			if isinstance(field, (models.CharField, models.TextField)) and field_data is None:
-				field_data = ""
+				if isinstance(field, (models.CharField, models.TextField)) and field_data is None:
+					field_data = ""
 
 			result[field.name] = field_data
 
