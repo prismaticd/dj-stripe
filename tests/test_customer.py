@@ -18,9 +18,9 @@ from djstripe.models import (
 from djstripe.settings import STRIPE_SECRET_KEY
 
 from . import (
-	FAKE_ACCOUNT, FAKE_CARD, FAKE_CARD_V, FAKE_CHARGE, FAKE_COUPON, FAKE_CUSTOMER,
-	FAKE_CUSTOMER_II, FAKE_DISCOUNT_CUSTOMER, FAKE_INVOICE, FAKE_INVOICE_III,
-	FAKE_INVOICEITEM, FAKE_PLAN, FAKE_SUBSCRIPTION, FAKE_SUBSCRIPTION_II,
+	FAKE_ACCOUNT, FAKE_BALANCE_TRANSACTION, FAKE_CARD, FAKE_CARD_V, FAKE_CHARGE,
+	FAKE_COUPON, FAKE_CUSTOMER, FAKE_CUSTOMER_II, FAKE_DISCOUNT_CUSTOMER, FAKE_INVOICE,
+	FAKE_INVOICE_III, FAKE_INVOICEITEM, FAKE_PLAN, FAKE_SUBSCRIPTION, FAKE_SUBSCRIPTION_II,
 	FAKE_UPCOMING_INVOICE, StripeList, datetime_to_unix, default_account
 )
 
@@ -295,8 +295,13 @@ class TestCustomer(TestCase):
 		)
 
 	@patch("djstripe.models.Account.get_default_account")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Charge.retrieve")
-	def test_refund_charge(self, charge_retrieve_mock, default_account_mock):
+	def test_refund_charge(
+		self, charge_retrieve_mock, balance_transaction_retrieve_mock, default_account_mock
+	):
 		default_account_mock.return_value = self.account
 
 		fake_charge_no_invoice = deepcopy(FAKE_CHARGE)
@@ -318,9 +323,12 @@ class TestCustomer(TestCase):
 		self.assertEqual(refunded_charge.amount_refunded, decimal.Decimal("22.00"))
 
 	@patch("djstripe.models.Account.get_default_account")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Charge.retrieve")
 	def test_refund_charge_object_returned(
-		self, charge_retrieve_mock, default_account_mock
+		self, charge_retrieve_mock, balance_transaction_retrieve_mock, default_account_mock
 	):
 		default_account_mock.return_value = self.account
 
@@ -359,10 +367,17 @@ class TestCustomer(TestCase):
 		)
 
 	@patch("djstripe.models.Account.get_default_account")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Charge.create")
 	def test_charge_converts_dollars_into_cents(
-		self, charge_create_mock, charge_retrieve_mock, default_account_mock
+		self,
+		charge_create_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		default_account_mock,
 	):
 		default_account_mock.return_value = self.account
 
@@ -378,6 +393,8 @@ class TestCustomer(TestCase):
 		self.assertEqual(kwargs["amount"], 1000)
 
 	@patch("djstripe.models.Account.get_default_account")
+	# TODO - fix recursion this causes
+	# @patch("stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION))
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Charge.create")
 	@patch("stripe.Invoice.retrieve")
@@ -386,6 +403,7 @@ class TestCustomer(TestCase):
 		invoice_retrieve_mock,
 		charge_create_mock,
 		charge_retrieve_mock,
+		# balance_transaction_retrieve_mock,
 		default_account_mock,
 	):
 		default_account_mock.return_value = self.account
@@ -406,10 +424,17 @@ class TestCustomer(TestCase):
 			self.fail(msg="Stripe Charge shouldn't throw Invoice DoesNotExist.")
 
 	@patch("djstripe.models.Account.get_default_account")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Charge.create")
 	def test_charge_passes_extra_arguments(
-		self, charge_create_mock, charge_retrieve_mock, default_account_mock
+		self,
+		charge_create_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		default_account_mock,
 	):
 		default_account_mock.return_value = self.account
 
@@ -428,10 +453,17 @@ class TestCustomer(TestCase):
 		self.assertEqual(kwargs["destination"], FAKE_ACCOUNT["id"])
 
 	@patch("djstripe.models.Account.get_default_account")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Charge.create")
 	def test_charge_string_source(
-		self, charge_create_mock, charge_retrieve_mock, default_account_mock
+		self,
+		charge_create_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		default_account_mock,
 	):
 		default_account_mock.return_value = self.account
 
@@ -444,10 +476,17 @@ class TestCustomer(TestCase):
 		self.customer.charge(amount=decimal.Decimal("10.00"), source=self.card.id)
 
 	@patch("djstripe.models.Account.get_default_account")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Charge.create")
 	def test_charge_card_source(
-		self, charge_create_mock, charge_retrieve_mock, default_account_mock
+		self,
+		charge_create_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		default_account_mock,
 	):
 		default_account_mock.return_value = self.account
 
@@ -460,9 +499,14 @@ class TestCustomer(TestCase):
 		self.customer.charge(amount=decimal.Decimal("10.00"), source=self.card)
 
 	@patch("djstripe.models.Account.get_default_account")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER))
 	@patch("stripe.Charge.retrieve", return_value=deepcopy(FAKE_CHARGE))
+	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE_III))
+	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN))
 	@patch(
 		"stripe.Invoice.list",
 		return_value=StripeList(data=[deepcopy(FAKE_INVOICE), deepcopy(FAKE_INVOICE_III)]),
@@ -472,9 +516,12 @@ class TestCustomer(TestCase):
 		self,
 		invoice_retry_mock,
 		invoice_list_mock,
+		plan_retrieve_mock,
+		invoice_retrieve_mock,
 		charge_retrieve_mock,
 		customer_retrieve_mock,
 		subscription_retrive_mock,
+		balance_transaction_retrieve_mock,
 		default_account_mock,
 	):
 		default_account_mock.return_value = self.account
@@ -509,6 +556,7 @@ class TestCustomer(TestCase):
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER))
 	@patch("stripe.Charge.retrieve", return_value=deepcopy(FAKE_CHARGE))
+	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN))
 	@patch(
 		"stripe.Invoice.list", return_value=StripeList(data=[deepcopy(FAKE_INVOICE_III)])
 	)
@@ -517,6 +565,7 @@ class TestCustomer(TestCase):
 		self,
 		invoice_retry_mock,
 		invoice_list_mock,
+		plan_retrieve_mock,
 		charge_retrieve_mock,
 		customer_retrieve_mock,
 		subscription_retrive_mock,
