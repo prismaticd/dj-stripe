@@ -103,8 +103,14 @@ class ChargeTest(TestCase):
 		self.assertEqual("card_16YKQh2eZvKYlo2Cblc5Feoo", charge.source_id)
 		self.assertEqual(charge.source.type, LegacySourceType.card)
 
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
+	@patch("stripe.Invoice.retrieve")
 	@patch("djstripe.models.Account.get_default_account")
-	def test_sync_from_stripe_data_max_amount(self, default_account_mock):
+	def test_sync_from_stripe_data_max_amount(
+		self, default_account_mock, invoice_retrieve_mock, balance_transaction_retrieve_mock
+	):
 		default_account_mock.return_value = self.account
 
 		fake_charge_copy = deepcopy(FAKE_CHARGE)
