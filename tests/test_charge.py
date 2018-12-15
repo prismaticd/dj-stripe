@@ -11,7 +11,10 @@ from django.test.testcases import TestCase
 from djstripe.enums import ChargeStatus, LegacySourceType
 from djstripe.models import Account, Charge, Dispute, PaymentMethod
 
-from . import FAKE_ACCOUNT, FAKE_CHARGE, FAKE_CUSTOMER, FAKE_TRANSFER, default_account
+from . import (
+	FAKE_ACCOUNT, FAKE_BALANCE_TRANSACTION, FAKE_CHARGE,
+	FAKE_CUSTOMER, FAKE_INVOICE, FAKE_TRANSFER, default_account
+)
 
 
 class ChargeTest(TestCase):
@@ -68,13 +71,26 @@ class ChargeTest(TestCase):
 		self.assertTrue(captured_charge.captured)
 
 	@patch("djstripe.models.Account.get_default_account")
-	def test_sync_from_stripe_data(self, default_account_mock):
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
+	@patch("stripe.Charge.retrieve")
+	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
+	def test_sync_from_stripe_data(
+		self,
+		invoice_retrieve_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		default_account_mock,
+	):
 		default_account_mock.return_value = self.account
 
 		fake_charge_copy = deepcopy(FAKE_CHARGE)
 		fake_charge_copy.update({"application_fee": {"amount": 0}})
 
 		charge = Charge.sync_from_stripe_data(FAKE_CHARGE)
+
+		charge_retrieve_mock.assert_not_called()
 
 		self.assertEqual(Decimal("22"), charge.amount)
 		self.assertEqual(True, charge.paid)
