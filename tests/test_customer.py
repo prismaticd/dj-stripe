@@ -465,8 +465,6 @@ class TestCustomer(TestCase):
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER))
 	@patch("stripe.Charge.retrieve", return_value=deepcopy(FAKE_CHARGE))
-	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE_III))
-	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN))
 	@patch(
 		"stripe.Invoice.list",
 		return_value=StripeList(data=[deepcopy(FAKE_INVOICE), deepcopy(FAKE_INVOICE_III)]),
@@ -476,8 +474,6 @@ class TestCustomer(TestCase):
 		self,
 		invoice_retry_mock,
 		invoice_list_mock,
-		plan_retrieve_mock,
-		invoice_retrieve_mock,
 		charge_retrieve_mock,
 		customer_retrieve_mock,
 		subscription_retrive_mock,
@@ -515,7 +511,6 @@ class TestCustomer(TestCase):
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER))
 	@patch("stripe.Charge.retrieve", return_value=deepcopy(FAKE_CHARGE))
-	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN))
 	@patch(
 		"stripe.Invoice.list", return_value=StripeList(data=[deepcopy(FAKE_INVOICE_III)])
 	)
@@ -524,7 +519,6 @@ class TestCustomer(TestCase):
 		self,
 		invoice_retry_mock,
 		invoice_list_mock,
-		plan_retrieve_mock,
 		charge_retrieve_mock,
 		customer_retrieve_mock,
 		subscription_retrive_mock,
