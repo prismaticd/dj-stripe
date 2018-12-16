@@ -12,8 +12,8 @@ from djstripe.enums import ChargeStatus, LegacySourceType
 from djstripe.models import Account, Charge, Dispute, PaymentMethod
 
 from . import (
-	FAKE_ACCOUNT, FAKE_BALANCE_TRANSACTION, FAKE_CHARGE,
-	FAKE_CUSTOMER, FAKE_INVOICE, FAKE_TRANSFER, default_account
+	FAKE_ACCOUNT, FAKE_BALANCE_TRANSACTION, FAKE_CHARGE, FAKE_CUSTOMER,
+	FAKE_INVOICE, FAKE_SUBSCRIPTION, FAKE_TRANSFER, default_account
 )
 
 
@@ -90,8 +90,6 @@ class ChargeTest(TestCase):
 
 		charge = Charge.sync_from_stripe_data(FAKE_CHARGE)
 
-		charge_retrieve_mock.assert_not_called()
-
 		self.assertEqual(Decimal("22"), charge.amount)
 		self.assertEqual(True, charge.paid)
 		self.assertEqual(False, charge.refunded)
@@ -103,13 +101,22 @@ class ChargeTest(TestCase):
 		self.assertEqual("card_16YKQh2eZvKYlo2Cblc5Feoo", charge.source_id)
 		self.assertEqual(charge.source.type, LegacySourceType.card)
 
+		charge_retrieve_mock.assert_not_called()
+
 	@patch(
 		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
 	)
-	@patch("stripe.Invoice.retrieve")
+	@patch("stripe.Charge.retrieve")
+	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
+	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("djstripe.models.Account.get_default_account")
 	def test_sync_from_stripe_data_max_amount(
-		self, default_account_mock, invoice_retrieve_mock, balance_transaction_retrieve_mock
+		self,
+		default_account_mock,
+		subscription_retrieve_mock,
+		invoice_retrieve_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
 	):
 		default_account_mock.return_value = self.account
 
@@ -126,8 +133,23 @@ class ChargeTest(TestCase):
 		self.assertEqual(False, charge.disputed)
 		self.assertEqual(0, charge.amount_refunded)
 
+		charge_retrieve_mock.assert_not_called()
+
 	@patch("djstripe.models.Account.get_default_account")
-	def test_sync_from_stripe_data_unsupported_source(self, default_account_mock):
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
+	@patch("stripe.Charge.retrieve")
+	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
+	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
+	def test_sync_from_stripe_data_unsupported_source(
+		self,
+		invoice_retrieve_mock,
+		subscription_retrieve_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		default_account_mock,
+	):
 		default_account_mock.return_value = self.account
 
 		fake_charge_copy = deepcopy(FAKE_CHARGE)
@@ -138,23 +160,59 @@ class ChargeTest(TestCase):
 		self.assertEqual("unsupported", charge.source.type)
 		self.assertEqual(charge.source, PaymentMethod.objects.get(id="test_id"))
 
+		charge_retrieve_mock.assert_not_called()
+
 	@patch("djstripe.models.Account.get_default_account")
-	def test_sync_from_stripe_data_no_customer(self, default_account_mock):
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
+	@patch("stripe.Charge.retrieve")
+	@patch("stripe.Subscription.retrieve")
+	@patch("stripe.Invoice.retrieve")
+	def test_sync_from_stripe_data_no_customer(
+		self,
+		invoice_retrieve_mock,
+		subscription_retrieve_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		default_account_mock,
+	):
 		default_account_mock.return_value = self.account
 
+		fake_invoice_copy = deepcopy(FAKE_INVOICE)
 		fake_charge_copy = deepcopy(FAKE_CHARGE)
+		fake_subscription_copy = deepcopy(FAKE_SUBSCRIPTION)
+
+		fake_invoice_copy.pop("customer", None)
 		fake_charge_copy.pop("customer", None)
+		fake_subscription_copy.pop("customer", None)
+
+		invoice_retrieve_mock.return_value = fake_invoice_copy
+		subscription_retrieve_mock.return_value = fake_subscription_copy
 
 		Charge.sync_from_stripe_data(fake_charge_copy)
 		assert Charge.objects.count() == 1
 		charge = Charge.objects.get()
 		assert charge.customer is None
 
+		charge_retrieve_mock.assert_not_called()
+
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
 	@patch("stripe.Charge.retrieve")
+	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
 	@patch("stripe.Transfer.retrieve")
+	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("djstripe.models.Account.get_default_account")
 	def test_sync_from_stripe_data_with_transfer(
-		self, default_account_mock, transfer_retrieve_mock, charge_retrieve_mock
+		self,
+		default_account_mock,
+		subscription_retrieve_mock,
+		transfer_retrieve_mock,
+		invoice_retrieve_mock,
+		charge_retrieve_mock,
+		balance_transaction_retrieve_mock,
 	):
 		default_account_mock.return_value = self.account
 
@@ -166,16 +224,30 @@ class ChargeTest(TestCase):
 		transfer_retrieve_mock.return_value = fake_transfer
 		charge_retrieve_mock.return_value = fake_charge_copy
 
-		charge, created = Charge._get_or_create_from_stripe_object(fake_charge_copy)
+		charge, created = Charge._get_or_create_from_stripe_object(
+			fake_charge_copy, ignore_ids=[fake_charge_copy["id"]]
+		)
 		self.assertTrue(created)
 
 		self.assertNotEqual(None, charge.transfer)
 		self.assertEqual(fake_transfer["id"], charge.transfer.id)
 
+		charge_retrieve_mock.assert_not_called()
+
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Account.retrieve")
+	@patch(
+		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
+	)
+	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
+	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
 	def test_sync_from_stripe_data_with_destination(
-		self, account_retrieve_mock, charge_retrieve_mock
+		self,
+		invoice_retrieve_mock,
+		subscription_retrieve_mock,
+		balance_transaction_retrieve_mock,
+		account_retrieve_mock,
+		charge_retrieve_mock,
 	):
 		account_retrieve_mock.return_value = FAKE_ACCOUNT
 
@@ -184,7 +256,9 @@ class ChargeTest(TestCase):
 
 		charge_retrieve_mock.return_value = fake_charge_copy
 
-		charge, created = Charge._get_or_create_from_stripe_object(fake_charge_copy)
+		charge, created = Charge._get_or_create_from_stripe_object(
+			fake_charge_copy, ignore_ids=[fake_charge_copy["id"]]
+		)
 		self.assertTrue(created)
 
 		self.assertEqual(2, Account.objects.count())
