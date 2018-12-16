@@ -19,7 +19,7 @@ class InvoiceItemTest(TestCase):
 		self.account = default_account()
 
 	@patch("djstripe.models.Account.get_default_account")
-	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN_II))
+	# @patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN_II))
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION_III))
 	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER_II))
 	@patch("stripe.Charge.retrieve", return_value=deepcopy(FAKE_CHARGE_II))
@@ -30,7 +30,7 @@ class InvoiceItemTest(TestCase):
 		charge_retrieve_mock,
 		customer_retrieve_mock,
 		subscription_retrieve_mock,
-		plan_retrieve_mock,
+		# plan_retrieve_mock,
 		default_account_mock,
 	):
 		default_account_mock.return_value = self.account

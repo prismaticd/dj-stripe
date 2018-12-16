@@ -463,16 +463,16 @@ class Invoice(StripeModel):
 	def get_stripe_dashboard_url(self):
 		return self.customer.get_stripe_dashboard_url()
 
-	def _attach_objects_hook(self, cls, data):
-		self.customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-
-		charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
-		if charge:
-			self.charge = charge
-
-		subscription = cls._stripe_object_to_subscription(target_cls=Subscription, data=data)
-		if subscription:
-			self.subscription = subscription
+	# def _attach_objects_hook(self, cls, data):
+	# 	self.customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
+	#
+	# 	charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
+	# 	if charge:
+	# 		self.charge = charge
+	#
+	# 	subscription = cls._stripe_object_to_subscription(target_cls=Subscription, data=data)
+	# 	if subscription:
+	# 		self.subscription = subscription
 
 	def _attach_objects_post_save_hook(self, cls, data):
 		# InvoiceItems need a saved invoice because they're associated via a
@@ -673,6 +673,14 @@ class InvoiceItem(StripeModel):
 			"amount={amount}".format(amount=self.amount),
 			"date={date}".format(date=self.date),
 		] + super().str_parts()
+
+	# @classmethod
+	# def sync_from_stripe_data(cls, data, ignore_ids=None):
+	# 	# sync parent object first
+	# 	# TODO - fix recursive retrieve of invoice/charge
+	# 	Invoice._get_or_create_from_stripe_object(data, field_name="invoice", ignore_ids=[data.get("id")])
+	#
+	# 	return super().sync_from_stripe_data(data, ignore_ids=ignore_ids)
 
 
 class Plan(StripeModel):
