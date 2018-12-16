@@ -12,8 +12,8 @@ from djstripe.enums import ChargeStatus, LegacySourceType
 from djstripe.models import Account, Charge, Dispute, PaymentMethod
 
 from . import (
-	FAKE_ACCOUNT, FAKE_BALANCE_TRANSACTION, FAKE_CHARGE, FAKE_CUSTOMER,
-	FAKE_INVOICE, FAKE_SUBSCRIPTION, FAKE_TRANSFER, default_account
+	FAKE_ACCOUNT, FAKE_CHARGE, FAKE_CUSTOMER, FAKE_INVOICE,
+	FAKE_SUBSCRIPTION, FAKE_TRANSFER, default_account
 )
 
 
