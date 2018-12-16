@@ -71,9 +71,7 @@ class ChargeTest(TestCase):
 		self.assertTrue(captured_charge.captured)
 
 	@patch("djstripe.models.Account.get_default_account")
-	@patch(
-		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
-	)
+	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
@@ -104,10 +102,9 @@ class ChargeTest(TestCase):
 		self.assertEqual(charge.source.type, LegacySourceType.card)
 
 		charge_retrieve_mock.assert_not_called()
+		balance_transaction_retrieve_mock.assert_not_called()
 
-	@patch(
-		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
-	)
+	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
@@ -136,11 +133,10 @@ class ChargeTest(TestCase):
 		self.assertEqual(0, charge.amount_refunded)
 
 		charge_retrieve_mock.assert_not_called()
+		balance_transaction_retrieve_mock.assert_not_called()
 
 	@patch("djstripe.models.Account.get_default_account")
-	@patch(
-		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
-	)
+	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
@@ -163,11 +159,10 @@ class ChargeTest(TestCase):
 		self.assertEqual(charge.source, PaymentMethod.objects.get(id="test_id"))
 
 		charge_retrieve_mock.assert_not_called()
+		balance_transaction_retrieve_mock.assert_not_called()
 
 	@patch("djstripe.models.Account.get_default_account")
-	@patch(
-		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
-	)
+	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
 	def test_sync_from_stripe_data_no_customer(
 		self, charge_retrieve_mock, balance_transaction_retrieve_mock, default_account_mock
@@ -186,10 +181,9 @@ class ChargeTest(TestCase):
 		assert charge.customer is None
 
 		charge_retrieve_mock.assert_not_called()
+		balance_transaction_retrieve_mock.assert_not_called()
 
-	@patch(
-		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
-	)
+	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
 	@patch("stripe.Transfer.retrieve")
@@ -223,12 +217,11 @@ class ChargeTest(TestCase):
 		self.assertEqual(fake_transfer["id"], charge.transfer.id)
 
 		charge_retrieve_mock.assert_not_called()
+		balance_transaction_retrieve_mock.assert_not_called()
 
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Account.retrieve")
-	@patch(
-		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
-	)
+	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
 	def test_sync_from_stripe_data_with_destination(
@@ -244,8 +237,6 @@ class ChargeTest(TestCase):
 		fake_charge_copy = deepcopy(FAKE_CHARGE)
 		fake_charge_copy.update({"destination": FAKE_ACCOUNT["id"]})
 
-		charge_retrieve_mock.return_value = fake_charge_copy
-
 		charge, created = Charge._get_or_create_from_stripe_object(
 			fake_charge_copy, ignore_ids=[fake_charge_copy["id"]]
 		)
@@ -255,3 +246,6 @@ class ChargeTest(TestCase):
 		account = Account.objects.get(id=FAKE_ACCOUNT["id"])
 
 		self.assertEqual(account, charge.account)
+
+		charge_retrieve_mock.assert_not_called()
+		balance_transaction_retrieve_mock.assert_not_called()
