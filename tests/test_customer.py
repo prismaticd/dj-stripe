@@ -393,17 +393,16 @@ class TestCustomer(TestCase):
 		self.assertEqual(kwargs["amount"], 1000)
 
 	@patch("djstripe.models.Account.get_default_account")
-	# TODO - fix recursion this causes
-	# @patch("stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION))
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Charge.create")
 	@patch("stripe.Invoice.retrieve")
+	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	def test_charge_doesnt_require_invoice(
 		self,
+		subscription_retrieve_mock,
 		invoice_retrieve_mock,
 		charge_create_mock,
 		charge_retrieve_mock,
-		# balance_transaction_retrieve_mock,
 		default_account_mock,
 	):
 		default_account_mock.return_value = self.account

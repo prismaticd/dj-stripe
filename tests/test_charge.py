@@ -76,8 +76,10 @@ class ChargeTest(TestCase):
 	)
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Invoice.retrieve", return_value=deepcopy(FAKE_INVOICE))
+	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION))
 	def test_sync_from_stripe_data(
 		self,
+		subscription_retrieve_mock,
 		invoice_retrieve_mock,
 		charge_retrieve_mock,
 		balance_transaction_retrieve_mock,
@@ -167,28 +169,16 @@ class ChargeTest(TestCase):
 		"stripe.BalanceTransaction.retrieve", return_value=deepcopy(FAKE_BALANCE_TRANSACTION)
 	)
 	@patch("stripe.Charge.retrieve")
-	@patch("stripe.Subscription.retrieve")
-	@patch("stripe.Invoice.retrieve")
 	def test_sync_from_stripe_data_no_customer(
-		self,
-		invoice_retrieve_mock,
-		subscription_retrieve_mock,
-		charge_retrieve_mock,
-		balance_transaction_retrieve_mock,
-		default_account_mock,
+		self, charge_retrieve_mock, balance_transaction_retrieve_mock, default_account_mock
 	):
 		default_account_mock.return_value = self.account
 
-		fake_invoice_copy = deepcopy(FAKE_INVOICE)
 		fake_charge_copy = deepcopy(FAKE_CHARGE)
-		fake_subscription_copy = deepcopy(FAKE_SUBSCRIPTION)
 
-		fake_invoice_copy.pop("customer", None)
 		fake_charge_copy.pop("customer", None)
-		fake_subscription_copy.pop("customer", None)
-
-		invoice_retrieve_mock.return_value = fake_invoice_copy
-		subscription_retrieve_mock.return_value = fake_subscription_copy
+		# remove invoice since it requires a customer
+		fake_charge_copy.pop("invoice", None)
 
 		Charge.sync_from_stripe_data(fake_charge_copy)
 		assert Charge.objects.count() == 1
