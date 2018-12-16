@@ -852,10 +852,10 @@ class Plan(StripeModel):
 	def __str__(self):
 		return self.name or self.nickname or self.id
 
-	def _attach_objects_hook(self, cls, data):
-		product = cls._stripe_object_to_product(target_cls=Product, data=data)
-		if product:
-			self.product = product
+	# def _attach_objects_hook(self, cls, data):
+	# 	product = cls._stripe_object_to_product(target_cls=Product, data=data)
+	# 	if product:
+	# 		self.product = product
 
 	@property
 	def amount_in_cents(self):
@@ -1218,9 +1218,9 @@ class Subscription(StripeModel):
 
 		return True
 
-	def _attach_objects_hook(self, cls, data):
-		self.customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-		self.plan = cls._stripe_object_to_plan(target_cls=Plan, data=data)
+	# def _attach_objects_hook(self, cls, data):
+	# 	self.customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
+	# 	self.plan = cls._stripe_object_to_plan(target_cls=Plan, data=data)
 
 
 class SubscriptionItem(StripeModel):
