@@ -158,13 +158,11 @@ class InvoiceTest(TestCase):
 
 		self.assertEqual(None, invoice.subscription)
 
-		charge_retrieve_mock.assert_called_once_with(
-			api_key=ANY, expand=ANY, id=FAKE_CHARGE["id"]
-		)
-		plan_retrieve_mock.assert_called_once_with(
-			api_key=ANY, expand=ANY, id=FAKE_PLAN["id"]
-		)
+		self.assertEqual(FAKE_CHARGE["id"], invoice.charge.id)
+		self.assertEqual(FAKE_PLAN["id"], invoice.plan.id)
 
+		charge_retrieve_mock.assert_not_called()
+		plan_retrieve_mock.assert_not_called()
 		subscription_retrieve_mock.assert_not_called()
 
 	@patch("djstripe.models.Account.get_default_account")
