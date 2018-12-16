@@ -12,8 +12,8 @@ from djstripe.enums import ChargeStatus, LegacySourceType
 from djstripe.models import Account, Charge, Dispute, PaymentMethod
 
 from . import (
-	FAKE_ACCOUNT, FAKE_CHARGE, FAKE_CUSTOMER, FAKE_INVOICE,
-	FAKE_SUBSCRIPTION, FAKE_TRANSFER, default_account
+	FAKE_ACCOUNT, FAKE_BALANCE_TRANSACTION, FAKE_CHARGE, FAKE_CUSTOMER,
+	FAKE_INVOICE, FAKE_SUBSCRIPTION, FAKE_TRANSFER, default_account
 )
 
 
@@ -103,6 +103,12 @@ class ChargeTest(TestCase):
 
 		charge_retrieve_mock.assert_not_called()
 		balance_transaction_retrieve_mock.assert_not_called()
+
+		self.assertEqual(FAKE_BALANCE_TRANSACTION["id"], charge.balance_transaction.id)
+		self.assertEqual(FAKE_CUSTOMER["id"], charge.customer.id)
+		self.assertEqual(FAKE_INVOICE["id"], charge.invoice.id)
+		self.assertEqual(FAKE_SUBSCRIPTION["id"], charge.invoice.subscription.id)
+		self.assertEqual(FAKE_SUBSCRIPTION["plan"]["id"], charge.invoice.subscription.plan.id)
 
 	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
