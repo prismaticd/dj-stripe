@@ -2,7 +2,6 @@
 dj-stripe InvoiceItem Model Tests.
 """
 from copy import deepcopy
-from unittest import skip
 from unittest.mock import patch
 
 from django.test.testcases import TestCase
@@ -11,7 +10,7 @@ from djstripe.models import InvoiceItem
 
 from . import (
 	FAKE_CHARGE_II, FAKE_CUSTOMER_II, FAKE_INVOICE_II, FAKE_INVOICEITEM,
-	FAKE_PLAN_II, FAKE_SUBSCRIPTION_III, default_account
+	FAKE_PLAN, FAKE_PLAN_II, FAKE_SUBSCRIPTION_III, default_account
 )
 
 
@@ -19,7 +18,6 @@ class InvoiceItemTest(TestCase):
 	def setUp(self):
 		self.account = default_account()
 
-	@skip("TODO - fix recursion")
 	@patch("djstripe.models.Account.get_default_account")
 	# @patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN_II))
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION_III))
@@ -55,7 +53,6 @@ class InvoiceItemTest(TestCase):
 			"<amount=20, date=2015-08-08 11:26:56+00:00, id=ii_16XVTY2eZvKYlo2Cxz5n3RaS>",
 		)
 
-	@skip("TODO - fix recursion")
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION_III))
 	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER_II))
@@ -75,9 +72,28 @@ class InvoiceItemTest(TestCase):
 		invoiceitem_data.update({"subscription": FAKE_SUBSCRIPTION_III["id"]})
 		invoiceitem = InvoiceItem.sync_from_stripe_data(invoiceitem_data)
 
+		# check fks on InvoiceItem
 		self.assertEqual(FAKE_SUBSCRIPTION_III["id"], invoiceitem.subscription.id)
+		self.assertEqual(FAKE_CUSTOMER_II["id"], invoiceitem.customer.id)
+		self.assertEqual(FAKE_INVOICE_II["id"], invoiceitem.invoice.id)
 
-	@skip("TODO - fix recursion")
+		invoice = invoiceitem.invoice
+
+		# check fks on Invoice
+
+		# TODO
+		# self.assertEqual(FAKE_CHARGE_II["id"], invoice.charge.id)
+		self.assertEqual(FAKE_SUBSCRIPTION_III["id"], invoice.subscription.id)
+		self.assertEqual(FAKE_CUSTOMER_II["id"], invoice.customer.id)
+
+		subscription = invoiceitem.subscription
+
+		# check fks on Subscription
+		self.assertEqual(FAKE_CUSTOMER_II["id"], subscription.customer.id)
+		self.assertEqual(FAKE_PLAN["id"], subscription.plan.id)
+
+		# TODO check fks on Charge
+
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN_II))
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION_III))

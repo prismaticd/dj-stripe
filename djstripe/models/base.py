@@ -173,6 +173,10 @@ class StripeModel(models.Model):
 		for field in cls._meta.fields:
 			if field.name.startswith("djstripe_") or field.name in ignore_fields:
 				continue
+			if isinstance(field, models.OneToOneField) and issubclass(
+				field.related_model, StripeModel
+			):
+				continue
 			if isinstance(field, models.ForeignKey):
 				if issubclass(field.related_model, StripeModel):
 					# TODO refactor this to reduce duplication of code with _get_or_create_from_stripe_object?

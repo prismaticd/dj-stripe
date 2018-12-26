@@ -3,7 +3,6 @@ dj-stripe Event Handler tests
 """
 import decimal
 from copy import deepcopy
-from unittest import skip
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -370,7 +369,6 @@ class TestInvoiceEvents(EventTestCase):
 
 
 class TestInvoiceItemEvents(EventTestCase):
-	@skip("TODO - fix recursion")
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION_III))
 	@patch("stripe.Charge.retrieve", return_value=deepcopy(FAKE_CHARGE_II))
@@ -407,7 +405,6 @@ class TestInvoiceItemEvents(EventTestCase):
 			fake_stripe_event["data"]["object"]["amount"] / decimal.Decimal("100"),
 		)
 
-	@skip("TODO - fix recursion")
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.Subscription.retrieve", return_value=deepcopy(FAKE_SUBSCRIPTION_III))
 	@patch("stripe.Charge.retrieve", return_value=deepcopy(FAKE_CHARGE_II))
