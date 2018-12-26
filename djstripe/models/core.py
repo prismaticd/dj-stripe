@@ -283,6 +283,10 @@ class Charge(StripeModel):
 		# if transfer:
 		# 	self.transfer = transfer
 
+		# fix up reverse OneToOneField
+		if self.invoice:
+			self.invoice.charge = self
+
 		# Set the account on this object.
 		destination_account = cls._stripe_object_destination_to_account(
 			target_cls=Account, data=data

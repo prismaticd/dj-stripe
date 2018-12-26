@@ -48,8 +48,7 @@ class InvoiceTest(TestCase):
 		# check fks on Charge
 		self.assertEqual(FAKE_BALANCE_TRANSACTION["id"], charge.balance_transaction.id)
 		self.assertEqual(FAKE_CUSTOMER["id"], charge.customer.id)
-		# TODO
-		# self.assertEqual(FAKE_INVOICE["id"], charge.invoice.id)
+		self.assertEqual(FAKE_INVOICE["id"], charge.invoice.id)
 		self.assertEqual(FAKE_CARD["id"], charge.source.id)
 
 		subscription = invoice.subscription

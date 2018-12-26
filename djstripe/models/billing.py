@@ -479,6 +479,18 @@ class Invoice(StripeModel):
 		# RelatedManager, so this must be done as part of the post save hook.
 		cls._stripe_object_to_invoice_items(target_cls=InvoiceItem, data=data, invoice=self)
 
+	@classmethod
+	def sync_from_stripe_data(cls, data):
+		invoice = super().sync_from_stripe_data(data)
+
+		# fix up OneToOneField
+		charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
+		if charge:
+			invoice.charge = charge
+			invoice.save()
+
+		return invoice
+
 	@property
 	def plan(self):
 		""" Gets the associated plan for this invoice.
