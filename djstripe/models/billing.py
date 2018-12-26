@@ -635,19 +635,19 @@ class InvoiceItem(StripeModel):
 
 		return data
 
-	@classmethod
-	def _stripe_object_to_plan(cls, target_cls, data):
-		"""
-		Search the given manager for the Plan matching this Charge object's ``plan`` field.
-
-		:param target_cls: The target class
-		:type target_cls: Plan
-		:param data: stripe object
-		:type data: dict
-		"""
-
-		if "plan" in data and data["plan"]:
-			return target_cls._get_or_create_from_stripe_object(data, "plan")[0]
+	# @classmethod
+	# def _stripe_object_to_plan(cls, target_cls, data):
+	# 	"""
+	# 	Search the given manager for the Plan matching this Charge object's ``plan`` field.
+	#
+	# 	:param target_cls: The target class
+	# 	:type target_cls: Plan
+	# 	:param data: stripe object
+	# 	:type data: dict
+	# 	"""
+	#
+	# 	if "plan" in data and data["plan"]:
+	# 		return target_cls._get_or_create_from_stripe_object(data, "plan")[0]
 
 	def __str__(self):
 		if self.plan and self.plan.product:
@@ -658,25 +658,25 @@ class InvoiceItem(StripeModel):
 	def is_valid_object(cls, data):
 		return data["object"] in ("invoiceitem", "line_item")
 
-	# TODO - can be removed?
-	def _attach_objects_hook(self, cls, data):
-		customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-
-		invoice = cls._stripe_object_to_invoice(target_cls=Invoice, data=data)
-		if invoice:
-			self.invoice = invoice
-			customer = customer or invoice.customer
-
-		plan = cls._stripe_object_to_plan(target_cls=Plan, data=data)
-		if plan:
-			self.plan = plan
-
-		subscription = cls._stripe_object_to_subscription(target_cls=Subscription, data=data)
-		if subscription:
-			self.subscription = subscription
-			customer = customer or subscription.customer
-
-		self.customer = customer
+	# # TODO - can be removed?
+	# def _attach_objects_hook(self, cls, data):
+	# 	customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
+	#
+ 	# 	invoice = cls._stripe_object_to_invoice(target_cls=Invoice, data=data)
+	# 	if invoice:
+	# 		self.invoice = invoice
+	# 		customer = customer or invoice.customer
+	#
+	# 	plan = cls._stripe_object_to_plan(target_cls=Plan, data=data)
+	# 	if plan:
+	# 		self.plan = plan
+	#
+	# 	subscription = cls._stripe_object_to_subscription(target_cls=Subscription, data=data)
+	# 	if subscription:
+	# 		self.subscription = subscription
+	# 		customer = customer or subscription.customer
+	#
+	# 	self.customer = customer
 
 	def get_stripe_dashboard_url(self):
 		return self.invoice.get_stripe_dashboard_url()
@@ -1040,20 +1040,20 @@ class Subscription(StripeModel):
 
 	objects = SubscriptionManager()
 
-	@classmethod
-	def _stripe_object_to_plan(cls, target_cls, data):
-		"""
-		Search the given manager for the Plan matching this Charge object's ``plan`` field.
-		Note that the plan field is already expanded in each request and is required.
-
-		:param target_cls: The target class
-		:type target_cls: Plan
-		:param data: stripe object
-		:type data: dict
-
-		"""
-
-		return target_cls._get_or_create_from_stripe_object(data["plan"])[0]
+	# @classmethod
+	# def _stripe_object_to_plan(cls, target_cls, data):
+	# 	"""
+	# 	Search the given manager for the Plan matching this Charge object's ``plan`` field.
+	# 	Note that the plan field is already expanded in each request and is required.
+	#
+	# 	:param target_cls: The target class
+	# 	:type target_cls: Plan
+	# 	:param data: stripe object
+	# 	:type data: dict
+	#
+	# 	"""
+	#
+	# 	return target_cls._get_or_create_from_stripe_object(data["plan"])[0]
 
 	def __str__(self):
 		return "{customer} on {plan}".format(customer=str(self.customer), plan=str(self.plan))

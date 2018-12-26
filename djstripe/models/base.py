@@ -354,20 +354,20 @@ class StripeModel(models.Model):
 	# 	if "transfer" in data and data["transfer"]:
 	# 		return target_cls._get_or_create_from_stripe_object(data, "transfer")[0]
 
-	# TODO - can be removed?
-	@classmethod
-	def _stripe_object_to_invoice(cls, target_cls, data):
-		"""
-		Search the given manager for the Invoice matching this Charge object's ``invoice`` field.
-		Note that the invoice field is required.
-
-		:param target_cls: The target class
-		:type target_cls: Invoice
-		:param data: stripe object
-		:type data: dict
-		"""
-
-		return target_cls._get_or_create_from_stripe_object(data, "invoice")[0]
+	# # TODO - can be removed?
+	# @classmethod
+	# def _stripe_object_to_invoice(cls, target_cls, data):
+	# 	"""
+	# 	Search the given manager for the Invoice matching this Charge object's ``invoice`` field.
+	# 	Note that the invoice field is required.
+	#
+	# 	:param target_cls: The target class
+	# 	:type target_cls: Invoice
+	# 	:param data: stripe object
+	# 	:type data: dict
+	# 	"""
+	#
+	# 	return target_cls._get_or_create_from_stripe_object(data, "invoice")[0]
 
 	@classmethod
 	def _stripe_object_to_invoice_items(cls, target_cls, data, invoice):
@@ -421,19 +421,19 @@ class StripeModel(models.Model):
 
 		return invoiceitems
 
-	@classmethod
-	def _stripe_object_to_subscription(cls, target_cls, data):
-		"""
-		Search the given manager for the Subscription matching this object's ``subscription`` field.
-
-		:param target_cls: The target class
-		:type target_cls: Subscription
-		:param data: stripe object
-		:type data: dict
-		"""
-
-		if "subscription" in data and data["subscription"]:
-			return target_cls._get_or_create_from_stripe_object(data, "subscription")[0]
+	# @classmethod
+	# def _stripe_object_to_subscription(cls, target_cls, data):
+	# 	"""
+	# 	Search the given manager for the Subscription matching this object's ``subscription`` field.
+	#
+	# 	:param target_cls: The target class
+	# 	:type target_cls: Subscription
+	# 	:param data: stripe object
+	# 	:type data: dict
+	# 	"""
+	#
+	# 	if "subscription" in data and data["subscription"]:
+	# 		return target_cls._get_or_create_from_stripe_object(data, "subscription")[0]
 
 	def _sync(self, record_data):
 		for attr, value in record_data.items():
