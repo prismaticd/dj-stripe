@@ -12,8 +12,9 @@ from djstripe.models import Invoice, Plan, Subscription, UpcomingInvoice
 from djstripe.settings import STRIPE_SECRET_KEY
 
 from . import (
-	FAKE_CHARGE, FAKE_CUSTOMER, FAKE_INVOICE, FAKE_INVOICEITEM_II,
-	FAKE_PLAN, FAKE_SUBSCRIPTION, FAKE_UPCOMING_INVOICE, default_account
+	FAKE_BALANCE_TRANSACTION, FAKE_CARD, FAKE_CHARGE,
+	FAKE_CUSTOMER, FAKE_INVOICE, FAKE_INVOICEITEM_II, FAKE_PLAN,
+	FAKE_SUBSCRIPTION, FAKE_UPCOMING_INVOICE, default_account
 )
 
 
@@ -37,6 +38,25 @@ class InvoiceTest(TestCase):
 			invoice.get_stripe_dashboard_url(), self.customer.get_stripe_dashboard_url()
 		)
 		self.assertEqual(str(invoice), "Invoice #XXXXXXX-0001")
+
+		# check fks
+		self.assertEqual(FAKE_CHARGE["id"], invoice.charge.id)
+		self.assertEqual(FAKE_SUBSCRIPTION["id"], invoice.subscription.id)
+
+		charge = invoice.charge
+
+		# check fks on Charge
+		self.assertEqual(FAKE_BALANCE_TRANSACTION["id"], charge.balance_transaction.id)
+		self.assertEqual(FAKE_CUSTOMER["id"], charge.customer.id)
+		# TODO
+		# self.assertEqual(FAKE_INVOICE["id"], charge.invoice.id)
+		self.assertEqual(FAKE_CARD["id"], charge.source.id)
+
+		subscription = invoice.subscription
+
+		# check fks on Subscription
+		self.assertEqual(FAKE_CUSTOMER["id"], subscription.customer.id)
+		self.assertEqual(FAKE_PLAN["id"], subscription.plan.id)
 
 	@patch("stripe.Invoice.retrieve")
 	@patch("djstripe.models.Account.get_default_account")
