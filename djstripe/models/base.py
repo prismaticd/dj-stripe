@@ -335,20 +335,19 @@ class StripeModel(models.Model):
 		if "customer" in data and data["customer"]:
 			return target_cls._get_or_create_from_stripe_object(data, "customer")[0]
 
-	@classmethod
-	def _stripe_object_to_transfer(cls, target_cls, data):
-		"""
-		Search the given manager for the Transfer matching this Charge object's ``transfer`` field.
-
-		:param target_cls: The target class
-		:type target_cls: Transfer
-		:param data: stripe object
-		:type data: dict
-		"""
-
-		if "transfer" in data and data["transfer"]:
-			return target_cls._get_or_create_from_stripe_object(data, "transfer")[0]
-
+	# @classmethod
+	# def _stripe_object_to_transfer(cls, target_cls, data):
+	# 	"""
+	# 	Search the given manager for the Transfer matching this Charge object's ``transfer`` field.
+	#
+	# 	:param target_cls: The target class
+	# 	:type target_cls: Transfer
+	# 	:param data: stripe object
+	# 	:type data: dict
+	# 	"""
+	#
+	# 	if "transfer" in data and data["transfer"]:
+	# 		return target_cls._get_or_create_from_stripe_object(data, "transfer")[0]
 	@classmethod
 	def _stripe_object_to_invoice(cls, target_cls, data):
 		"""
