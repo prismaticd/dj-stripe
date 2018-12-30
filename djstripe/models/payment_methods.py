@@ -428,13 +428,6 @@ class Source(StripeModel):
 		data["source_data"] = data[data["type"]]
 		return data
 
-	# def _attach_objects_hook(self, cls, data):
-	# 	customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-	# 	if customer:
-	# 		self.customer = customer
-	# 	else:
-	# 		self.customer = None
-
 	def detach(self):
 		"""
 		Detach the source from its customer.

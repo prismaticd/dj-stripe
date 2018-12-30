@@ -173,16 +173,7 @@ class StripeModel(models.Model):
 		for field in cls._meta.fields:
 			if field.name.startswith("djstripe_") or field.name in ignore_fields:
 				continue
-			# if isinstance(field, models.OneToOneField) and issubclass(
-			# 	field.related_model, StripeModel
-			# ):
-			# 	print(f"skipping {cls} {field.related_model} {manipulated_data.get(field.name)}")
-			# 	continue
 			if isinstance(field, models.ForeignKey):
-				# if isinstance(field, models.OneToOneField):
-				# 	print(f"skipping {cls} {field.related_model} {manipulated_data.get(field.name)}")
-				# 	continue
-
 				if issubclass(field.related_model, StripeModel):
 					# TODO refactor this to reduce duplication of code with _get_or_create_from_stripe_object?
 					field_data = None
@@ -207,17 +198,6 @@ class StripeModel(models.Model):
 								object_id = manipulated_data["id"]
 								post_save_relations.append((object_id, field, id))
 							continue
-
-					# if isinstance(field, models.OneToOneField):
-					# 	print(f"skipping {cls} {field.related_model} {manipulated_data.get(field.name)}")
-					# else:
-					# print(f"{isinstance(field, models.OneToOneField)} {cls} {field.related_model} {id}")
-
-					# if cls.__name__.endswith("Invoice"):
-					# 	print("here")
-					#
-					# if field.related_model.__name__.endswith("Charge"):
-					# 	print("here")
 
 					if field_data is None:
 						field_data, _ = field.related_model._get_or_create_from_stripe_object(
@@ -368,50 +348,6 @@ class StripeModel(models.Model):
 		except IntegrityError:
 			return cls.stripe_objects.get(id=id), False
 
-	# TODO - can be removed?
-	@classmethod
-	def _stripe_object_to_customer(cls, target_cls, data):
-		"""
-		Search the given manager for the Customer matching this object's ``customer`` field.
-
-		:param target_cls: The target class
-		:type target_cls: Customer
-		:param data: stripe object
-		:type data: dict
-		"""
-
-		if "customer" in data and data["customer"]:
-			return target_cls._get_or_create_from_stripe_object(data, "customer")[0]
-
-	# @classmethod
-	# def _stripe_object_to_transfer(cls, target_cls, data):
-	# 	"""
-	# 	Search the given manager for the Transfer matching this Charge object's ``transfer`` field.
-	#
-	# 	:param target_cls: The target class
-	# 	:type target_cls: Transfer
-	# 	:param data: stripe object
-	# 	:type data: dict
-	# 	"""
-	#
-	# 	if "transfer" in data and data["transfer"]:
-	# 		return target_cls._get_or_create_from_stripe_object(data, "transfer")[0]
-
-	# # TODO - can be removed?
-	# @classmethod
-	# def _stripe_object_to_invoice(cls, target_cls, data):
-	# 	"""
-	# 	Search the given manager for the Invoice matching this Charge object's ``invoice`` field.
-	# 	Note that the invoice field is required.
-	#
-	# 	:param target_cls: The target class
-	# 	:type target_cls: Invoice
-	# 	:param data: stripe object
-	# 	:type data: dict
-	# 	"""
-	#
-	# 	return target_cls._get_or_create_from_stripe_object(data, "invoice")[0]
-
 	@classmethod
 	def _stripe_object_to_invoice_items(cls, target_cls, data, invoice):
 		"""
@@ -464,20 +400,6 @@ class StripeModel(models.Model):
 
 		return invoiceitems
 
-	# @classmethod
-	# def _stripe_object_to_subscription(cls, target_cls, data):
-	# 	"""
-	# 	Search the given manager for the Subscription matching this object's ``subscription`` field.
-	#
-	# 	:param target_cls: The target class
-	# 	:type target_cls: Subscription
-	# 	:param data: stripe object
-	# 	:type data: dict
-	# 	"""
-	#
-	# 	if "subscription" in data and data["subscription"]:
-	# 		return target_cls._get_or_create_from_stripe_object(data, "subscription")[0]
-
 	def _sync(self, record_data):
 		for attr, value in record_data.items():
 			setattr(self, attr, value)
@@ -498,8 +420,6 @@ class StripeModel(models.Model):
 			ignore_ids.append(data.get(field_name))
 
 		instance, created = cls._get_or_create_from_stripe_object(data, field_name=field_name, ignore_ids=ignore_ids, post_save_relations=post_save_relations)
-		#
-		# instance, created = cls._get_or_create_from_stripe_object(data)
 
 		if not created:
 			instance._sync(cls._stripe_object_to_record(data))

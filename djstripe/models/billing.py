@@ -463,38 +463,10 @@ class Invoice(StripeModel):
 	def get_stripe_dashboard_url(self):
 		return self.customer.get_stripe_dashboard_url()
 
-	# def _attach_objects_hook(self, cls, data):
-	# 	self.customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-	#
-		# charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
-		# if charge:
-		# 	self.charge = charge
-	#
-	# 	subscription = cls._stripe_object_to_subscription(target_cls=Subscription, data=data)
-	# 	if subscription:
-	# 		self.subscription = subscription
-
 	def _attach_objects_post_save_hook(self, cls, data):
-		# charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
-		# if charge:
-		# 	self.charge = charge
-		# 	self.save()
-
 		# InvoiceItems need a saved invoice because they're associated via a
 		# RelatedManager, so this must be done as part of the post save hook.
 		cls._stripe_object_to_invoice_items(target_cls=InvoiceItem, data=data, invoice=self)
-
-	# @classmethod
-	# def sync_from_stripe_data(cls, data):
-	# 	invoice = super().sync_from_stripe_data(data)
-	#
-	# 	# fix up OneToOneField
-	# 	charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
-	# 	if charge:
-	# 		invoice.charge = charge
-	# 		invoice.save()
-	#
-	# 	return invoice
 
 	@property
 	def plan(self):
@@ -648,20 +620,6 @@ class InvoiceItem(StripeModel):
 
 		return super().sync_from_stripe_data(data, field_name=field_name)
 
-	# @classmethod
-	# def _stripe_object_to_plan(cls, target_cls, data):
-	# 	"""
-	# 	Search the given manager for the Plan matching this Charge object's ``plan`` field.
-	#
-	# 	:param target_cls: The target class
-	# 	:type target_cls: Plan
-	# 	:param data: stripe object
-	# 	:type data: dict
-	# 	"""
-	#
-	# 	if "plan" in data and data["plan"]:
-	# 		return target_cls._get_or_create_from_stripe_object(data, "plan")[0]
-
 	def __str__(self):
 		if self.plan and self.plan.product:
 			return self.plan.product.name or str(self.plan)
@@ -671,26 +629,6 @@ class InvoiceItem(StripeModel):
 	def is_valid_object(cls, data):
 		return data["object"] in ("invoiceitem", "line_item")
 
-	# # TODO - can be removed?
-	# def _attach_objects_hook(self, cls, data):
-	# 	customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-	#
- 	# 	invoice = cls._stripe_object_to_invoice(target_cls=Invoice, data=data)
-	# 	if invoice:
-	# 		self.invoice = invoice
-	# 		customer = customer or invoice.customer
-	#
-	# 	plan = cls._stripe_object_to_plan(target_cls=Plan, data=data)
-	# 	if plan:
-	# 		self.plan = plan
-	#
-	# 	subscription = cls._stripe_object_to_subscription(target_cls=Subscription, data=data)
-	# 	if subscription:
-	# 		self.subscription = subscription
-	# 		customer = customer or subscription.customer
-	#
-	# 	self.customer = customer
-
 	def get_stripe_dashboard_url(self):
 		return self.invoice.get_stripe_dashboard_url()
 
@@ -699,14 +637,6 @@ class InvoiceItem(StripeModel):
 			"amount={amount}".format(amount=self.amount),
 			"date={date}".format(date=self.date),
 		] + super().str_parts()
-
-	# @classmethod
-	# def sync_from_stripe_data(cls, data, ignore_ids=None):
-	# 	# sync parent object first
-	# 	# TODO - fix recursive retrieve of invoice/charge
-	# 	Invoice._get_or_create_from_stripe_object(data, field_name="invoice", ignore_ids=[data.get("id")])
-	#
-	# 	return super().sync_from_stripe_data(data, ignore_ids=ignore_ids)
 
 
 class Plan(StripeModel):
@@ -878,11 +808,6 @@ class Plan(StripeModel):
 	def __str__(self):
 		return self.name or self.nickname or self.id
 
-	# def _attach_objects_hook(self, cls, data):
-	# 	product = cls._stripe_object_to_product(target_cls=Product, data=data)
-	# 	if product:
-	# 		self.product = product
-
 	@property
 	def amount_in_cents(self):
 		return int(self.amount * 100)
@@ -1052,21 +977,6 @@ class Subscription(StripeModel):
 	)
 
 	objects = SubscriptionManager()
-
-	# @classmethod
-	# def _stripe_object_to_plan(cls, target_cls, data):
-	# 	"""
-	# 	Search the given manager for the Plan matching this Charge object's ``plan`` field.
-	# 	Note that the plan field is already expanded in each request and is required.
-	#
-	# 	:param target_cls: The target class
-	# 	:type target_cls: Plan
-	# 	:param data: stripe object
-	# 	:type data: dict
-	#
-	# 	"""
-	#
-	# 	return target_cls._get_or_create_from_stripe_object(data["plan"])[0]
 
 	def __str__(self):
 		return "{customer} on {plan}".format(customer=str(self.customer), plan=str(self.plan))
@@ -1243,10 +1153,6 @@ class Subscription(StripeModel):
 			return False
 
 		return True
-
-	# def _attach_objects_hook(self, cls, data):
-	# 	self.customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-	# 	self.plan = cls._stripe_object_to_plan(target_cls=Plan, data=data)
 
 
 class SubscriptionItem(StripeModel):

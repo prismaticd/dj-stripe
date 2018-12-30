@@ -275,18 +275,6 @@ class Charge(StripeModel):
 	def _attach_objects_hook(self, cls, data):
 		from .payment_methods import PaymentMethod
 
-		# customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
-		# if customer:
-		# 	self.customer = customer
-		#
-		# transfer = cls._stripe_object_to_transfer(target_cls=Transfer, data=data)
-		# if transfer:
-		# 	self.transfer = transfer
-
-		# fix up reverse OneToOneField
-		# if self.invoice:
-		# 	self.invoice.charge = self
-
 		# Set the account on this object.
 		destination_account = cls._stripe_object_destination_to_account(
 			target_cls=Account, data=data
@@ -1448,6 +1436,3 @@ class Refund(StripeModel):
 
 	def get_stripe_dashboard_url(self):
 		return self.charge.get_stripe_dashboard_url()
-
-	# def _attach_objects_hook(self, cls, data):
-	# 	self.charge = Charge._get_or_create_from_stripe_object(data, "charge")[0]
