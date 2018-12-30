@@ -138,7 +138,7 @@ class StripeModel(models.Model):
 		return data
 
 	@classmethod
-	def _stripe_object_to_record(cls, data, ignore_ids=None, post_save_relations=None, skip_one_to_ones=False):
+	def _stripe_object_to_record(cls, data, ignore_ids=None, post_save_relations=None):
 		"""
 		This takes an object, as it is formatted in Stripe's current API for our object
 		type. In return, it provides a dict. The dict can be used to create a record or
@@ -271,7 +271,7 @@ class StripeModel(models.Model):
 		pass
 
 	@classmethod
-	def _create_from_stripe_object(cls, data, ignore_ids=None, post_save_relations=None, skip_one_to_ones=False, save=True):
+	def _create_from_stripe_object(cls, data, ignore_ids=None, post_save_relations=None, save=True):
 		"""
 		Instantiates a model instance using the provided data object received
 		from Stripe, and saves it to the database if specified.
@@ -283,7 +283,7 @@ class StripeModel(models.Model):
 		:returns: The instantiated object.
 		"""
 
-		instance = cls(**cls._stripe_object_to_record(data, ignore_ids=ignore_ids, post_save_relations=post_save_relations, skip_one_to_ones=skip_one_to_ones))
+		instance = cls(**cls._stripe_object_to_record(data, ignore_ids=ignore_ids, post_save_relations=post_save_relations))
 		instance._attach_objects_hook(cls, data)
 
 		if save:
@@ -313,7 +313,7 @@ class StripeModel(models.Model):
 
 	@classmethod
 	def _get_or_create_from_stripe_object(
-		cls, data, field_name="id", refetch=True, ignore_ids=None, post_save_relations=None, skip_one_to_ones=False, save=True
+		cls, data, field_name="id", refetch=True, ignore_ids=None, post_save_relations=None, save=True
 	):
 		"""
 
@@ -364,7 +364,7 @@ class StripeModel(models.Model):
 		)
 
 		try:
-			return (cls._create_from_stripe_object(data, ignore_ids=ignore_ids, post_save_relations=post_save_relations, skip_one_to_ones=skip_one_to_ones, save=save), True)
+			return (cls._create_from_stripe_object(data, ignore_ids=ignore_ids, post_save_relations=post_save_relations, save=save), True)
 		except IntegrityError:
 			return cls.stripe_objects.get(id=id), False
 
@@ -497,7 +497,7 @@ class StripeModel(models.Model):
 			# stop nested objects from trying to retrieve this object before initial sync is complete
 			ignore_ids.append(data.get(field_name))
 
-		instance, created = cls._get_or_create_from_stripe_object(data, field_name=field_name, ignore_ids=ignore_ids, post_save_relations=post_save_relations, skip_one_to_ones=True)
+		instance, created = cls._get_or_create_from_stripe_object(data, field_name=field_name, ignore_ids=ignore_ids, post_save_relations=post_save_relations)
 		#
 		# instance, created = cls._get_or_create_from_stripe_object(data)
 
