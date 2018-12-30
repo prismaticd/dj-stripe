@@ -10,8 +10,8 @@ from djstripe.models import InvoiceItem
 
 from . import (
 	FAKE_CHARGE_II, FAKE_CUSTOMER_II, FAKE_INVOICE_II, FAKE_INVOICEITEM,
-	FAKE_PLAN, FAKE_PLAN_II, FAKE_SUBSCRIPTION_III, default_account
-)
+	FAKE_PLAN, FAKE_PLAN_II, FAKE_SUBSCRIPTION_III, default_account,
+	FAKE_BALANCE_TRANSACTION, FAKE_CARD_II)
 
 
 class InvoiceItemTest(TestCase):
@@ -91,7 +91,13 @@ class InvoiceItemTest(TestCase):
 		self.assertEqual(FAKE_CUSTOMER_II["id"], subscription.customer.id)
 		self.assertEqual(FAKE_PLAN["id"], subscription.plan.id)
 
-		# TODO check fks on Charge
+		charge = invoice.charge
+
+		# check fks on Charge
+		self.assertEqual(FAKE_BALANCE_TRANSACTION["id"], charge.balance_transaction.id)
+		self.assertEqual(FAKE_CUSTOMER_II["id"], charge.customer.id)
+		self.assertEqual(FAKE_INVOICE_II["id"], charge.invoice.id)
+		self.assertEqual(FAKE_CARD_II["id"], charge.source.id)
 
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN_II))

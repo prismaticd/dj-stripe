@@ -185,6 +185,7 @@ class StripeModel(models.Model):
 
 				if issubclass(field.related_model, StripeModel):
 					# TODO refactor this to reduce duplication of code with _get_or_create_from_stripe_object?
+					field_data = None
 					field_name = field.name
 					raw_field_data = manipulated_data.get(field_name)
 					refetch = False
@@ -197,26 +198,31 @@ class StripeModel(models.Model):
 						id = raw_field_data.get("id")
 
 					if id in ignore_ids:
-						# this object is already being fetched, don't try to fetch again, to avoid recursion
-						if post_save_relations is not None:
-							object_id = manipulated_data["id"]
-							post_save_relations.append((object_id, field, id))
-						continue
+						# TODO - refactor this into _get_or_create_from_stripe_object?
+						try:
+							field_data = cls.stripe_objects.get(id=id)
+						except cls.DoesNotExist:
+							# this object is already being fetched, don't try to fetch again, to avoid recursion
+							if post_save_relations is not None:
+								object_id = manipulated_data["id"]
+								post_save_relations.append((object_id, field, id))
+							continue
 
 					# if isinstance(field, models.OneToOneField):
 					# 	print(f"skipping {cls} {field.related_model} {manipulated_data.get(field.name)}")
 					# else:
-					print(f"{isinstance(field, models.OneToOneField)} {cls} {field.related_model} {id}")
+					# print(f"{isinstance(field, models.OneToOneField)} {cls} {field.related_model} {id}")
 
-					if cls.__name__.endswith("Invoice"):
-						print("here")
+					# if cls.__name__.endswith("Invoice"):
+					# 	print("here")
+					#
+					# if field.related_model.__name__.endswith("Charge"):
+					# 	print("here")
 
-					if field.related_model.__name__.endswith("Charge"):
-						print("here")
-
-					field_data, _ = field.related_model._get_or_create_from_stripe_object(
-						manipulated_data, field_name, refetch=refetch, ignore_ids=ignore_ids, post_save_relations=post_save_relations
-					)
+					if field_data is None:
+						field_data, _ = field.related_model._get_or_create_from_stripe_object(
+							manipulated_data, field_name, refetch=refetch, ignore_ids=ignore_ids, post_save_relations=post_save_relations
+						)
 				else:
 					# TODO - eg PaymentMethod
 					continue
@@ -477,7 +483,7 @@ class StripeModel(models.Model):
 			setattr(self, attr, value)
 
 	@classmethod
-	def sync_from_stripe_data(cls, data):
+	def sync_from_stripe_data(cls, data, field_name="id"):
 		"""
 		Syncs this object from the stripe data provided.
 
@@ -487,11 +493,11 @@ class StripeModel(models.Model):
 		ignore_ids = []
 		post_save_relations = []
 
-		if data.get("id"):
+		if data.get(field_name, None):
 			# stop nested objects from trying to retrieve this object before initial sync is complete
-			ignore_ids.append(data.get("id"))
+			ignore_ids.append(data.get(field_name))
 
-		instance, created = cls._get_or_create_from_stripe_object(data, ignore_ids=ignore_ids, post_save_relations=post_save_relations, skip_one_to_ones=True)
+		instance, created = cls._get_or_create_from_stripe_object(data, field_name=field_name, ignore_ids=ignore_ids, post_save_relations=post_save_relations, skip_one_to_ones=True)
 		#
 		# instance, created = cls._get_or_create_from_stripe_object(data)
 

@@ -484,17 +484,17 @@ class Invoice(StripeModel):
 		# RelatedManager, so this must be done as part of the post save hook.
 		cls._stripe_object_to_invoice_items(target_cls=InvoiceItem, data=data, invoice=self)
 
-	@classmethod
-	def sync_from_stripe_data(cls, data):
-		invoice = super().sync_from_stripe_data(data)
-
-		# fix up OneToOneField
-		charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
-		if charge:
-			invoice.charge = charge
-			invoice.save()
-
-		return invoice
+	# @classmethod
+	# def sync_from_stripe_data(cls, data):
+	# 	invoice = super().sync_from_stripe_data(data)
+	#
+	# 	# fix up OneToOneField
+	# 	charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
+	# 	if charge:
+	# 		invoice.charge = charge
+	# 		invoice.save()
+	#
+	# 	return invoice
 
 	@property
 	def plan(self):
@@ -639,6 +639,14 @@ class InvoiceItem(StripeModel):
 		data["period_end"] = data["period"]["end"]
 
 		return data
+
+	@classmethod
+	def sync_from_stripe_data(cls, data, field_name="id"):
+		if data.get("invoice"):
+			# sync the Invoice first to avoid recursive Charge/Invoice loop
+			Invoice.sync_from_stripe_data(data={"invoice": data.get("invoice")}, field_name="invoice")
+
+		return super().sync_from_stripe_data(data, field_name=field_name)
 
 	# @classmethod
 	# def _stripe_object_to_plan(cls, target_cls, data):
