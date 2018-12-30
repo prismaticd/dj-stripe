@@ -19,10 +19,11 @@ from djstripe.models import (
 from djstripe.settings import STRIPE_SECRET_KEY
 
 from . import (
-	FAKE_ACCOUNT, FAKE_CARD, FAKE_CARD_V, FAKE_CHARGE, FAKE_COUPON, FAKE_CUSTOMER,
-	FAKE_CUSTOMER_II, FAKE_DISCOUNT_CUSTOMER, FAKE_INVOICE, FAKE_INVOICE_III,
-	FAKE_INVOICEITEM, FAKE_PLAN, FAKE_SUBSCRIPTION, FAKE_SUBSCRIPTION_II,
-	FAKE_UPCOMING_INVOICE, StripeList, datetime_to_unix, default_account
+	FAKE_ACCOUNT, FAKE_CARD, FAKE_CARD_V, FAKE_CHARGE, FAKE_COUPON,
+	FAKE_CUSTOMER, FAKE_CUSTOMER_II, FAKE_DISCOUNT_CUSTOMER,
+	FAKE_INVOICE, FAKE_INVOICE_III, FAKE_INVOICEITEM, FAKE_PLAN,
+	FAKE_SUBSCRIPTION, FAKE_SUBSCRIPTION_II, FAKE_UPCOMING_INVOICE,
+	AssertStripeFksMixin, StripeList, datetime_to_unix, default_account
 )
 
 # Don't try and use autospec=True for functions that have a exception side-effect on py3.4
@@ -30,7 +31,7 @@ from . import (
 IS_EXCEPTION_AUTOSPEC_SUPPORTED = sys.version_info >= (3, 5)
 
 
-class TestCustomer(TestCase):
+class TestCustomer(AssertStripeFksMixin, TestCase):
 	def setUp(self):
 		self.user = get_user_model().objects.create_user(
 			username="pydanny", email="pydanny@gmail.com"
@@ -119,6 +120,11 @@ class TestCustomer(TestCase):
 		self.assertNotEqual(customer.subscriber, user)
 		self.assertNotEqual(customer.subscriber_id, 98765)
 
+		self.assert_fks(
+			customer,
+			expected_blank_fks={"djstripe.Customer.coupon", "djstripe.Customer.subscriber"},
+		)
+
 	def test_customer_sync_has_bad_subscriber_metadata(self):
 		fake_customer = deepcopy(FAKE_CUSTOMER)
 		fake_customer["id"] = "cus_sync_has_bad_subscriber_metadata"
@@ -127,6 +133,11 @@ class TestCustomer(TestCase):
 
 		self.assertEqual(customer.subscriber, None)
 		self.assertEqual(customer.metadata, {"djstripe_subscriber": "does_not_exist"})
+
+		self.assert_fks(
+			customer,
+			expected_blank_fks={"djstripe.Customer.coupon", "djstripe.Customer.subscriber"},
+		)
 
 	@patch("stripe.Customer.create")
 	def test_customer_create_metadata_disabled(self, customer_mock):
@@ -147,6 +158,11 @@ class TestCustomer(TestCase):
 		)
 
 		self.assertEqual(customer.metadata, None)
+
+		self.assert_fks(
+			customer,
+			expected_blank_fks={"djstripe.Customer.coupon", "djstripe.Customer.default_source"},
+		)
 
 	@patch("stripe.Card.retrieve", return_value=FAKE_CUSTOMER_II["default_source"])
 	def test_customer_sync_non_local_card(self, card_retrieve_mock):
@@ -180,6 +196,11 @@ class TestCustomer(TestCase):
 		self.assertEqual(customer.legacy_cards.count(), 0)
 		self.assertEqual(customer.default_source, None)
 
+		self.assert_fks(
+			customer,
+			expected_blank_fks={"djstripe.Customer.coupon", "djstripe.Customer.default_source"},
+		)
+
 	def test_customer_sync_default_source_string(self):
 		Customer.objects.all().delete()
 		Card.objects.all().delete()
@@ -191,6 +212,11 @@ class TestCustomer(TestCase):
 		self.assertEqual(customer.default_source.id, customer_fake["default_source"])
 		self.assertEqual(customer.legacy_cards.count(), 2)
 		self.assertEqual(len(list(customer.payment_methods)), 2)
+
+		self.assert_fks(
+			customer,
+			expected_blank_fks={"djstripe.Customer.coupon", "djstripe.Customer.subscriber"},
+		)
 
 	@patch("stripe.Customer.retrieve")
 	def test_customer_purge_leaves_customer_record(self, customer_retrieve_fake):
@@ -298,6 +324,8 @@ class TestCustomer(TestCase):
 		customer_retrieve_mock.assert_called_once_with(
 			api_key=STRIPE_SECRET_KEY, expand=["default_source"], id=FAKE_CUSTOMER["id"]
 		)
+
+		self.assert_fks(self.customer, expected_blank_fks={})
 
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.Charge.retrieve")

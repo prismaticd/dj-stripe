@@ -208,7 +208,7 @@ class StripeModel(models.Model):
 							pending_relations=pending_relations,
 						)
 				else:
-					# TODO - eg PaymentMethod
+					# eg PaymentMethod, handled in hooks
 					continue
 			else:
 				if hasattr(field, "stripe_to_db"):

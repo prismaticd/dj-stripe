@@ -12,12 +12,12 @@ from djstripe.enums import ChargeStatus, LegacySourceType
 from djstripe.models import Account, Charge, Dispute, PaymentMethod
 
 from . import (
-	FAKE_ACCOUNT, FAKE_BALANCE_TRANSACTION, FAKE_CARD, FAKE_CHARGE, FAKE_CUSTOMER,
-	FAKE_INVOICE, FAKE_PLAN, FAKE_SUBSCRIPTION, FAKE_TRANSFER, default_account
+	FAKE_ACCOUNT, FAKE_CHARGE, FAKE_CUSTOMER, FAKE_INVOICE,
+	FAKE_SUBSCRIPTION, FAKE_TRANSFER, AssertStripeFksMixin, default_account
 )
 
 
-class ChargeTest(TestCase):
+class ChargeTest(AssertStripeFksMixin, TestCase):
 	def setUp(self):
 		self.user = get_user_model().objects.create_user(
 			username="user", email="user@example.com"
@@ -70,6 +70,18 @@ class ChargeTest(TestCase):
 		captured_charge = charge.capture()
 		self.assertTrue(captured_charge.captured)
 
+		self.assert_fks(
+			charge,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.invoice",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Plan.product",
+			},
+		)
+
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
@@ -106,24 +118,16 @@ class ChargeTest(TestCase):
 		charge_retrieve_mock.assert_not_called()
 		balance_transaction_retrieve_mock.assert_not_called()
 
-		# check fks on Charge
-		self.assertEqual(FAKE_BALANCE_TRANSACTION["id"], charge.balance_transaction.id)
-		self.assertEqual(FAKE_CUSTOMER["id"], charge.customer.id)
-		self.assertEqual(FAKE_INVOICE["id"], charge.invoice.id)
-		self.assertEqual(FAKE_CARD["id"], charge.source.id)
-
-		invoice = charge.invoice
-
-		# check fks on Invoice
-		self.assertEqual(charge, invoice.charge)
-		self.assertEqual(FAKE_SUBSCRIPTION["id"], invoice.subscription.id)
-		self.assertEqual(FAKE_CUSTOMER["id"], invoice.customer.id)
-
-		subscription = invoice.subscription
-
-		# check fks on Subscription
-		self.assertEqual(FAKE_CUSTOMER["id"], subscription.customer.id)
-		self.assertEqual(FAKE_PLAN["id"], subscription.plan.id)
+		self.assert_fks(
+			charge,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Plan.product",
+			},
+		)
 
 	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
@@ -156,6 +160,17 @@ class ChargeTest(TestCase):
 		charge_retrieve_mock.assert_not_called()
 		balance_transaction_retrieve_mock.assert_not_called()
 
+		self.assert_fks(
+			charge,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Plan.product",
+			},
+		)
+
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
@@ -182,6 +197,17 @@ class ChargeTest(TestCase):
 		charge_retrieve_mock.assert_not_called()
 		balance_transaction_retrieve_mock.assert_not_called()
 
+		self.assert_fks(
+			charge,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Plan.product",
+			},
+		)
+
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
@@ -203,6 +229,19 @@ class ChargeTest(TestCase):
 
 		charge_retrieve_mock.assert_not_called()
 		balance_transaction_retrieve_mock.assert_not_called()
+
+		self.assert_fks(
+			charge,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.customer",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.invoice",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Plan.product",
+			},
+		)
 
 	@patch("stripe.BalanceTransaction.retrieve")
 	@patch("stripe.Charge.retrieve")
@@ -240,6 +279,17 @@ class ChargeTest(TestCase):
 		charge_retrieve_mock.assert_not_called()
 		balance_transaction_retrieve_mock.assert_not_called()
 
+		self.assert_fks(
+			charge,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Plan.product",
+			},
+		)
+
 	@patch("stripe.Charge.retrieve")
 	@patch("stripe.Account.retrieve")
 	@patch("stripe.BalanceTransaction.retrieve")
@@ -270,3 +320,14 @@ class ChargeTest(TestCase):
 
 		charge_retrieve_mock.assert_not_called()
 		balance_transaction_retrieve_mock.assert_not_called()
+
+		self.assert_fks(
+			charge,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Plan.product",
+			},
+		)
