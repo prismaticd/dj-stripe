@@ -230,7 +230,7 @@ class ChargeTest(TestCase):
 		charge_retrieve_mock.return_value = fake_charge_copy
 
 		charge, created = Charge._get_or_create_from_stripe_object(
-			fake_charge_copy, ignore_ids=[fake_charge_copy["id"]]
+			fake_charge_copy, current_ids={fake_charge_copy["id"]}
 		)
 		self.assertTrue(created)
 
@@ -259,7 +259,7 @@ class ChargeTest(TestCase):
 		fake_charge_copy.update({"destination": FAKE_ACCOUNT["id"]})
 
 		charge, created = Charge._get_or_create_from_stripe_object(
-			fake_charge_copy, ignore_ids=[fake_charge_copy["id"]]
+			fake_charge_copy, current_ids={fake_charge_copy["id"]}
 		)
 		self.assertTrue(created)
 
