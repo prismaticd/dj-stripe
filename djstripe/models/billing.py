@@ -16,7 +16,6 @@ from ..fields import (
 from ..managers import SubscriptionManager
 from ..utils import QuerySetMock, get_friendly_currency_amount
 from .base import StripeModel
-from .core import Product
 
 
 class Coupon(StripeModel):
