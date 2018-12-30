@@ -138,7 +138,7 @@ class StripeModel(models.Model):
 		return data
 
 	@classmethod
-	def _stripe_object_to_record(cls, data, ignore_ids=None, post_save_relations=None):
+	def _stripe_object_to_record(cls, data, ignore_ids=None, pending_relations=None):
 		"""
 		This takes an object, as it is formatted in Stripe's current API for our object
 		type. In return, it provides a dict. The dict can be used to create a record or
@@ -189,19 +189,16 @@ class StripeModel(models.Model):
 						id = raw_field_data.get("id")
 
 					if id in ignore_ids:
-						# TODO - refactor this into _get_or_create_from_stripe_object?
-						try:
-							field_data = cls.stripe_objects.get(id=id)
-						except cls.DoesNotExist:
-							# this object is already being fetched, don't try to fetch again, to avoid recursion
-							if post_save_relations is not None:
-								object_id = manipulated_data["id"]
-								post_save_relations.append((object_id, field, id))
-							continue
+						# this object is currently being fetched, don't try to fetch again, to avoid recursion
+						# instead, record the relation that should be be created once "object_id" object exists
+						if pending_relations is not None:
+							object_id = manipulated_data["id"]
+							pending_relations.append((object_id, field, id))
+						continue
 
 					if field_data is None:
 						field_data, _ = field.related_model._get_or_create_from_stripe_object(
-							manipulated_data, field_name, refetch=refetch, ignore_ids=ignore_ids, post_save_relations=post_save_relations
+							manipulated_data, field_name, refetch=refetch, ignore_ids=ignore_ids, pending_relations=pending_relations
 						)
 				else:
 					# TODO - eg PaymentMethod
@@ -251,7 +248,7 @@ class StripeModel(models.Model):
 		pass
 
 	@classmethod
-	def _create_from_stripe_object(cls, data, ignore_ids=None, post_save_relations=None, save=True):
+	def _create_from_stripe_object(cls, data, ignore_ids=None, pending_relations=None, save=True):
 		"""
 		Instantiates a model instance using the provided data object received
 		from Stripe, and saves it to the database if specified.
@@ -263,7 +260,7 @@ class StripeModel(models.Model):
 		:returns: The instantiated object.
 		"""
 
-		instance = cls(**cls._stripe_object_to_record(data, ignore_ids=ignore_ids, post_save_relations=post_save_relations))
+		instance = cls(**cls._stripe_object_to_record(data, ignore_ids=ignore_ids, pending_relations=pending_relations))
 		instance._attach_objects_hook(cls, data)
 
 		if save:
@@ -271,9 +268,9 @@ class StripeModel(models.Model):
 
 		instance._attach_objects_post_save_hook(cls, data)
 
-		unprocessed_post_save_relations = []
-		if post_save_relations is not None:
-			for post_save_relation in post_save_relations:
+		unprocessed_pending_relations = []
+		if pending_relations is not None:
+			for post_save_relation in pending_relations:
 				object_id, field, id = post_save_relation
 
 				if instance.id == id:
@@ -283,17 +280,17 @@ class StripeModel(models.Model):
 					target.save()
 					instance.refresh_from_db()
 				else:
-					unprocessed_post_save_relations.append(post_save_relation)
+					unprocessed_pending_relations.append(post_save_relation)
 
-			if len(post_save_relations) != len(unprocessed_post_save_relations):
+			if len(pending_relations) != len(unprocessed_pending_relations):
 				# replace in place
-				post_save_relations[:] = unprocessed_post_save_relations
+				pending_relations[:] = unprocessed_pending_relations
 
 		return instance
 
 	@classmethod
 	def _get_or_create_from_stripe_object(
-		cls, data, field_name="id", refetch=True, ignore_ids=None, post_save_relations=None, save=True
+		cls, data, field_name="id", refetch=True, ignore_ids=None, pending_relations=None, save=True
 	):
 		"""
 
@@ -344,7 +341,7 @@ class StripeModel(models.Model):
 		)
 
 		try:
-			return (cls._create_from_stripe_object(data, ignore_ids=ignore_ids, post_save_relations=post_save_relations, save=save), True)
+			return (cls._create_from_stripe_object(data, ignore_ids=ignore_ids, pending_relations=pending_relations, save=save), True)
 		except IntegrityError:
 			return cls.stripe_objects.get(id=id), False
 
@@ -413,13 +410,13 @@ class StripeModel(models.Model):
 		:type data: dict
 		"""
 		ignore_ids = []
-		post_save_relations = []
+		pending_relations = []
 
 		if data.get(field_name, None):
 			# stop nested objects from trying to retrieve this object before initial sync is complete
 			ignore_ids.append(data.get(field_name))
 
-		instance, created = cls._get_or_create_from_stripe_object(data, field_name=field_name, ignore_ids=ignore_ids, post_save_relations=post_save_relations)
+		instance, created = cls._get_or_create_from_stripe_object(data, field_name=field_name, ignore_ids=ignore_ids, pending_relations=pending_relations)
 
 		if not created:
 			instance._sync(cls._stripe_object_to_record(data))
