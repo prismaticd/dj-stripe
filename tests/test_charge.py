@@ -87,8 +87,10 @@ class ChargeTest(TestCase):
 
 		fake_charge_copy = deepcopy(FAKE_CHARGE)
 		fake_charge_copy.update({"application_fee": {"amount": 0}})
+		# charge_retrieve_mock.return_value = fake_charge_copy
 
 		charge = Charge.sync_from_stripe_data(FAKE_CHARGE)
+		# charge.refresh_from_db()
 
 		self.assertEqual(Decimal("22"), charge.amount)
 		self.assertEqual(True, charge.paid)

@@ -466,15 +466,20 @@ class Invoice(StripeModel):
 	# def _attach_objects_hook(self, cls, data):
 	# 	self.customer = cls._stripe_object_to_customer(target_cls=Customer, data=data)
 	#
-	# 	charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
-	# 	if charge:
-	# 		self.charge = charge
+		# charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
+		# if charge:
+		# 	self.charge = charge
 	#
 	# 	subscription = cls._stripe_object_to_subscription(target_cls=Subscription, data=data)
 	# 	if subscription:
 	# 		self.subscription = subscription
 
 	def _attach_objects_post_save_hook(self, cls, data):
+		# charge = cls._stripe_object_to_charge(target_cls=Charge, data=data)
+		# if charge:
+		# 	self.charge = charge
+		# 	self.save()
+
 		# InvoiceItems need a saved invoice because they're associated via a
 		# RelatedManager, so this must be done as part of the post save hook.
 		cls._stripe_object_to_invoice_items(target_cls=InvoiceItem, data=data, invoice=self)

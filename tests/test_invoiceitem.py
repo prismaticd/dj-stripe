@@ -81,8 +81,7 @@ class InvoiceItemTest(TestCase):
 
 		# check fks on Invoice
 
-		# TODO
-		# self.assertEqual(FAKE_CHARGE_II["id"], invoice.charge.id)
+		self.assertEqual(FAKE_CHARGE_II["id"], invoice.charge.id)
 		self.assertEqual(FAKE_SUBSCRIPTION_III["id"], invoice.subscription.id)
 		self.assertEqual(FAKE_CUSTOMER_II["id"], invoice.customer.id)
 
