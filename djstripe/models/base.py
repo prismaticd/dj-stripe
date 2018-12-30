@@ -200,7 +200,11 @@ class StripeModel(models.Model):
 
 					if field_data is None:
 						field_data, _ = field.related_model._get_or_create_from_stripe_object(
-							manipulated_data, field_name, refetch=refetch, current_ids=current_ids, pending_relations=pending_relations
+							manipulated_data,
+							field_name,
+							refetch=refetch,
+							current_ids=current_ids,
+							pending_relations=pending_relations,
 						)
 				else:
 					# TODO - eg PaymentMethod
@@ -250,7 +254,9 @@ class StripeModel(models.Model):
 		pass
 
 	@classmethod
-	def _create_from_stripe_object(cls, data, current_ids=None, pending_relations=None, save=True):
+	def _create_from_stripe_object(
+		cls, data, current_ids=None, pending_relations=None, save=True
+	):
 		"""
 		Instantiates a model instance using the provided data object received
 		from Stripe, and saves it to the database if specified.
@@ -262,7 +268,11 @@ class StripeModel(models.Model):
 		:returns: The instantiated object.
 		"""
 
-		instance = cls(**cls._stripe_object_to_record(data, current_ids=current_ids, pending_relations=pending_relations))
+		instance = cls(
+			**cls._stripe_object_to_record(
+				data, current_ids=current_ids, pending_relations=pending_relations
+			)
+		)
 		instance._attach_objects_hook(cls, data)
 
 		if save:
@@ -292,7 +302,13 @@ class StripeModel(models.Model):
 
 	@classmethod
 	def _get_or_create_from_stripe_object(
-		cls, data, field_name="id", refetch=True, current_ids=None, pending_relations=None, save=True
+		cls,
+		data,
+		field_name="id",
+		refetch=True,
+		current_ids=None,
+		pending_relations=None,
+		save=True,
 	):
 		"""
 
@@ -343,7 +359,12 @@ class StripeModel(models.Model):
 		)
 
 		try:
-			return (cls._create_from_stripe_object(data, current_ids=current_ids, pending_relations=pending_relations, save=save), True)
+			return (
+				cls._create_from_stripe_object(
+					data, current_ids=current_ids, pending_relations=pending_relations, save=save
+				),
+				True,
+			)
 		except IntegrityError:
 			return cls.stripe_objects.get(id=id), False
 
@@ -418,7 +439,12 @@ class StripeModel(models.Model):
 			# stop nested objects from trying to retrieve this object before initial sync is complete
 			current_ids.add(data.get(field_name))
 
-		instance, created = cls._get_or_create_from_stripe_object(data, field_name=field_name, current_ids=current_ids, pending_relations=pending_relations)
+		instance, created = cls._get_or_create_from_stripe_object(
+			data,
+			field_name=field_name,
+			current_ids=current_ids,
+			pending_relations=pending_relations,
+		)
 
 		if not created:
 			instance._sync(cls._stripe_object_to_record(data))
