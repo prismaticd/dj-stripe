@@ -2,6 +2,7 @@ import logging
 import uuid
 from datetime import timedelta
 
+import django
 from django.db import IntegrityError, models
 from django.utils import dateformat, timezone
 from django.utils.encoding import smart_text
@@ -290,7 +291,12 @@ class StripeModel(models.Model):
 					target = field.model.objects.get(id=object_id)
 					setattr(target, field.name, instance)
 					target.save()
-					instance.refresh_from_db()
+
+					if django.VERSION < (2, 1):
+						# refresh_from_db doesn't clear related objects cache on django<2.1
+						instance = instance.__class__.objects.get(id=instance.id)
+					else:
+						instance.refresh_from_db()
 				else:
 					unprocessed_pending_relations.append(post_save_relation)
 
