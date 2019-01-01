@@ -928,7 +928,7 @@ class Customer(StripeModel):
 			coupon = coupon.id
 
 		stripe_customer = self.api_retrieve()
-		stripe_customer.coupon = coupon
+		stripe_customer["coupon"] = coupon
 		stripe_customer.save(idempotency_key=idempotency_key)
 		return self.__class__.sync_from_stripe_data(stripe_customer)
 
