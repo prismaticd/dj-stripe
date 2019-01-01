@@ -442,17 +442,13 @@ class StripeModel(models.Model):
 		:type data: dict
 		"""
 		current_ids = set()
-		pending_relations = []
 
 		if data.get(field_name, None):
 			# stop nested objects from trying to retrieve this object before initial sync is complete
 			current_ids.add(data.get(field_name))
 
 		instance, created = cls._get_or_create_from_stripe_object(
-			data,
-			field_name=field_name,
-			current_ids=current_ids,
-			pending_relations=pending_relations,
+			data, field_name=field_name, current_ids=current_ids
 		)
 
 		if not created:
