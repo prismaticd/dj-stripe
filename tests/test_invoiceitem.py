@@ -9,13 +9,13 @@ from django.test.testcases import TestCase
 from djstripe.models import InvoiceItem
 
 from . import (
-	FAKE_BALANCE_TRANSACTION, FAKE_CARD_II, FAKE_CHARGE_II,
-	FAKE_CUSTOMER_II, FAKE_INVOICE_II, FAKE_INVOICEITEM, FAKE_PLAN,
-	FAKE_PLAN_II, FAKE_SUBSCRIPTION_III, default_account
+	FAKE_BALANCE_TRANSACTION, FAKE_CARD_II, FAKE_CHARGE_II, FAKE_CUSTOMER_II,
+	FAKE_INVOICE_II, FAKE_INVOICEITEM, FAKE_PLAN, FAKE_PLAN_II,
+	FAKE_SUBSCRIPTION_III, AssertStripeFksMixin, default_account
 )
 
 
-class InvoiceItemTest(TestCase):
+class InvoiceItemTest(AssertStripeFksMixin, TestCase):
 	def setUp(self):
 		self.account = default_account()
 
@@ -71,32 +71,19 @@ class InvoiceItemTest(TestCase):
 		invoiceitem_data.update({"subscription": FAKE_SUBSCRIPTION_III["id"]})
 		invoiceitem = InvoiceItem.sync_from_stripe_data(invoiceitem_data)
 
-		# check fks on InvoiceItem
-		self.assertEqual(FAKE_SUBSCRIPTION_III["id"], invoiceitem.subscription.id)
-		self.assertEqual(FAKE_CUSTOMER_II["id"], invoiceitem.customer.id)
-		self.assertEqual(FAKE_INVOICE_II["id"], invoiceitem.invoice.id)
-
-		invoice = invoiceitem.invoice
-
-		# check fks on Invoice
-
-		self.assertEqual(FAKE_CHARGE_II["id"], invoice.charge.id)
-		self.assertEqual(FAKE_SUBSCRIPTION_III["id"], invoice.subscription.id)
-		self.assertEqual(FAKE_CUSTOMER_II["id"], invoice.customer.id)
-
-		subscription = invoiceitem.subscription
-
-		# check fks on Subscription
-		self.assertEqual(FAKE_CUSTOMER_II["id"], subscription.customer.id)
-		self.assertEqual(FAKE_PLAN["id"], subscription.plan.id)
-
-		charge = invoice.charge
-
-		# check fks on Charge
-		self.assertEqual(FAKE_BALANCE_TRANSACTION["id"], charge.balance_transaction.id)
-		self.assertEqual(FAKE_CUSTOMER_II["id"], charge.customer.id)
-		self.assertEqual(FAKE_INVOICE_II["id"], charge.invoice.id)
-		self.assertEqual(FAKE_CARD_II["id"], charge.source.id)
+		self.assert_fks(
+			invoiceitem,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Customer.subscriber",
+				"djstripe.Plan.product",
+				"djstripe.InvoiceItem.plan",
+				"djstripe.Charge.invoice",
+			},
+		)
 
 	@patch("djstripe.models.Account.get_default_account")
 	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN_II))
@@ -120,3 +107,16 @@ class InvoiceItemTest(TestCase):
 		invoiceitem = InvoiceItem.sync_from_stripe_data(invoiceitem_data)
 
 		self.assertEqual(FAKE_PLAN_II["id"], invoiceitem.plan.id)
+
+		self.assert_fks(
+			invoiceitem,
+			expected_blank_fks={
+				"djstripe.Account.business_logo",
+				"djstripe.Charge.dispute",
+				"djstripe.Charge.transfer",
+				"djstripe.Customer.coupon",
+				"djstripe.Customer.subscriber",
+				"djstripe.InvoiceItem.subscription",
+				"djstripe.Plan.product",
+			},
+		)

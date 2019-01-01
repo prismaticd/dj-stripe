@@ -14,6 +14,10 @@ from django.utils import dateformat, timezone
 
 from djstripe.webhooks import TEST_EVENT_ID
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 FUTURE_DATE = datetime(2100, 4, 30, tzinfo=timezone.utc)
 
 
@@ -46,7 +50,7 @@ class AssertStripeFksMixin:
 						# recurse into the object if it's not already been checked
 						self.assert_fks(field_value, expected_blank_fks, processed_stripe_ids)
 
-					print("checked {}".format(field_str))
+					logger.warning("checked {}".format(field_str))
 
 
 def datetime_to_unix(datetime_):
