@@ -329,6 +329,9 @@ class StripeModel(models.Model):
 		is_nested_data = field_name != "id"
 		should_expand = False
 
+		if pending_relations is None:
+			pending_relations = []
+
 		if isinstance(field, str):
 			# A field like {"subscription": "sub_6lsC8pt7IcFpjA", ...}
 			id = field

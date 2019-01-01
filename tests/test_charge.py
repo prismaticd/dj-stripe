@@ -284,7 +284,6 @@ class ChargeTest(AssertStripeFksMixin, TestCase):
 			expected_blank_fks={
 				"djstripe.Account.business_logo",
 				"djstripe.Charge.dispute",
-				"djstripe.Charge.transfer",
 				"djstripe.Customer.coupon",
 				"djstripe.Plan.product",
 			},
