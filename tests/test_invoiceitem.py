@@ -9,9 +9,8 @@ from django.test.testcases import TestCase
 from djstripe.models import InvoiceItem
 
 from . import (
-	FAKE_BALANCE_TRANSACTION, FAKE_CARD_II, FAKE_CHARGE_II, FAKE_CUSTOMER_II,
-	FAKE_INVOICE_II, FAKE_INVOICEITEM, FAKE_PLAN, FAKE_PLAN_II,
-	FAKE_SUBSCRIPTION_III, AssertStripeFksMixin, default_account
+	FAKE_CHARGE_II, FAKE_CUSTOMER_II, FAKE_INVOICE_II, FAKE_INVOICEITEM,
+	FAKE_PLAN_II, FAKE_SUBSCRIPTION_III, AssertStripeFksMixin, default_account
 )
 
 

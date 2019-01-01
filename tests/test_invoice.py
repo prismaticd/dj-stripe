@@ -12,9 +12,8 @@ from djstripe.models import Invoice, Plan, Subscription, UpcomingInvoice
 from djstripe.settings import STRIPE_SECRET_KEY
 
 from . import (
-	FAKE_BALANCE_TRANSACTION, FAKE_CARD, FAKE_CHARGE, FAKE_CUSTOMER,
-	FAKE_INVOICE, FAKE_INVOICEITEM_II, FAKE_PLAN, FAKE_SUBSCRIPTION,
-	FAKE_UPCOMING_INVOICE, AssertStripeFksMixin, default_account
+	FAKE_CHARGE, FAKE_CUSTOMER, FAKE_INVOICE, FAKE_INVOICEITEM_II, FAKE_PLAN,
+	FAKE_SUBSCRIPTION, FAKE_UPCOMING_INVOICE, AssertStripeFksMixin, default_account
 )
 
 
