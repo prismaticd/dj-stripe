@@ -44,21 +44,6 @@ class SubscriptionTest(AssertStripeFksMixin, TestCase):
 
 	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN))
 	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER))
-	def test_sync_from_stripe_data(self, customer_retrieve_mock, plan_retreive_mock):
-		subscription_fake = deepcopy(FAKE_SUBSCRIPTION)
-		subscription = Subscription.sync_from_stripe_data(subscription_fake)
-
-		# check fks on Subscription
-		self.assertEqual(FAKE_CUSTOMER["id"], subscription.customer.id)
-		self.assertEqual(FAKE_PLAN["id"], subscription.plan.id)
-
-		self.assert_fks(
-			subscription,
-			expected_blank_fks={"djstripe.Customer.coupon", "djstripe.Plan.product"},
-		)
-
-	@patch("stripe.Plan.retrieve", return_value=deepcopy(FAKE_PLAN))
-	@patch("stripe.Customer.retrieve", return_value=deepcopy(FAKE_CUSTOMER))
 	def test_is_status_temporarily_current(
 		self, customer_retrieve_mock, plan_retreive_mock
 	):
