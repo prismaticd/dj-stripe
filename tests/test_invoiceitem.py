@@ -81,7 +81,6 @@ class InvoiceItemTest(AssertStripeFksMixin, TestCase):
 				"djstripe.Customer.subscriber",
 				"djstripe.Plan.product",
 				"djstripe.InvoiceItem.plan",
-				"djstripe.Charge.invoice",
 			},
 		)
 
