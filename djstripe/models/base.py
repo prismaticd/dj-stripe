@@ -291,9 +291,9 @@ class StripeModel(models.Model):
 		unprocessed_pending_relations = []
 		if pending_relations is not None:
 			for post_save_relation in pending_relations:
-				object_id, field, id = post_save_relation
+				object_id, field, id_ = post_save_relation
 
-				if self.id == id:
+				if self.id == id_:
 					# the target instance now exists
 					target = field.model.objects.get(id=object_id)
 					setattr(target, field.name, self)
@@ -313,7 +313,7 @@ class StripeModel(models.Model):
 					unprocessed_pending_relations.append(post_save_relation)
 
 			if len(pending_relations) != len(unprocessed_pending_relations):
-				# replace in place
+				# replace in place so passed in list is updated in calling method
 				pending_relations[:] = unprocessed_pending_relations
 
 	@classmethod
