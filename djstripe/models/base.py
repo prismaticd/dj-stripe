@@ -177,38 +177,13 @@ class StripeModel(models.Model):
 			if field.name.startswith("djstripe_") or field.name in ignore_fields:
 				continue
 			if isinstance(field, models.ForeignKey):
-				if issubclass(field.related_model, StripeModel):
-					# TODO refactor this to reduce duplication of code with _get_or_create_from_stripe_object?
-					field_data = None
-					field_name = field.name
-					raw_field_data = manipulated_data.get(field_name)
-					refetch = False
-					id = None
-
-					if isinstance(raw_field_data, str):
-						id = raw_field_data
-						refetch = True
-					elif raw_field_data:
-						id = raw_field_data.get("id")
-
-					if id in current_ids:
-						# this object is currently being fetched, don't try to fetch again, to avoid recursion
-						# instead, record the relation that should be be created once "object_id" object exists
-						if pending_relations is not None:
-							object_id = manipulated_data["id"]
-							pending_relations.append((object_id, field, id))
-						continue
-
-					if field_data is None:
-						field_data, _ = field.related_model._get_or_create_from_stripe_object(
-							manipulated_data,
-							field_name,
-							refetch=refetch,
-							current_ids=current_ids,
-							pending_relations=pending_relations,
-						)
-				else:
-					# eg PaymentMethod, handled in hooks
+				field_data, skip = cls._stripe_object_field_to_foreign_key(
+					field=field,
+					manipulated_data=manipulated_data,
+					current_ids=current_ids,
+					pending_relations=pending_relations,
+				)
+				if skip:
 					continue
 			else:
 				if hasattr(field, "stripe_to_db"):
@@ -222,6 +197,62 @@ class StripeModel(models.Model):
 			result[field.name] = field_data
 
 		return result
+
+	@classmethod
+	def _stripe_object_field_to_foreign_key(
+		cls, field, manipulated_data, current_ids=None, pending_relations=None
+	):
+		"""
+		This converts a stripe API field to the dj stripe object it references,
+		so that foreign keys can be connected up automatically.
+
+		:param field:
+		:type field: models.ForeignKey
+		:param manipulated_data:
+		:param current_ids:
+		:param pending_relations:
+		:return:
+		"""
+		field_data = None
+		field_name = field.name
+		raw_field_data = manipulated_data.get(field_name)
+		refetch = False
+		skip = False
+
+		if issubclass(field.related_model, StripeModel):
+			# see also similar login in _get_or_create_from_stripe_object
+			if isinstance(raw_field_data, str):
+				# A field like {"subscription": "sub_6lsC8pt7IcFpjA", ...}
+				id = raw_field_data
+				refetch = True
+			elif raw_field_data:
+				# A field like {"subscription": {"id": sub_6lsC8pt7IcFpjA", ...}}
+				id = raw_field_data.get("id")
+			else:
+				id = None
+				skip = True
+
+			if id in current_ids:
+				# this object is currently being fetched, don't try to fetch again, to avoid recursion
+				# instead, record the relation that should be be created once "object_id" object exists
+				if pending_relations is not None:
+					object_id = manipulated_data["id"]
+					pending_relations.append((object_id, field, id))
+				skip = True
+
+			if not skip:
+				field_data, _ = field.related_model._get_or_create_from_stripe_object(
+					manipulated_data,
+					field_name,
+					refetch=refetch,
+					current_ids=current_ids,
+					pending_relations=pending_relations,
+				)
+		else:
+			# eg PaymentMethod, handled in hooks
+			skip = True
+
+		return field_data, skip
 
 	@classmethod
 	def is_valid_object(cls, data):
