@@ -151,8 +151,10 @@ class StripeModel(models.Model):
 
 		:param data: the object, as sent by Stripe. Parsed from JSON, into a dict
 		:type data: dict
-		:param current_ids: set of ids that are currently being processed
-		:param pending_relations: list of tuple of relations that should be added post-save
+		:param current_ids: stripe ids of objects that are currently being processed
+		:type current_ids: set
+		:param pending_relations: list of tuples of relations to be attached post-save
+		:type pending_relations: list
 		:return: All the members from the input, translated, mutated, etc
 		:rtype: dict
 		"""
@@ -209,8 +211,11 @@ class StripeModel(models.Model):
 		:param field:
 		:type field: models.ForeignKey
 		:param manipulated_data:
-		:param current_ids:
-		:param pending_relations:
+		:type manipulated_data: dict
+		:param current_ids: stripe ids of objects that are currently being processed
+		:type current_ids: set
+		:param pending_relations: list of tuples of relations to be attached post-save
+		:type pending_relations: list
 		:return:
 		"""
 		field_data = None
@@ -295,6 +300,10 @@ class StripeModel(models.Model):
 
 		:param data: The data dictionary received from the Stripe API.
 		:type data: dict
+		:param current_ids: stripe ids of objects that are currently being processed
+		:type current_ids: set
+		:param pending_relations: list of tuples of relations to be attached post-save
+		:type pending_relations: list
 		:param save: If True, the object is saved after instantiation.
 		:type save: bool
 		:returns: The instantiated object.
@@ -352,7 +361,10 @@ class StripeModel(models.Model):
 		:param data:
 		:param field_name:
 		:param refetch:
-		:param current_ids: optional list of ids that won't be refetched
+		:param current_ids: stripe ids of objects that are currently being processed
+		:type current_ids: set
+		:param pending_relations: list of tuples of relations to be attached post-save
+		:type pending_relations: list
 		:param save:
 		:return:
 		"""
