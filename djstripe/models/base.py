@@ -220,7 +220,7 @@ class StripeModel(models.Model):
 		skip = False
 
 		if issubclass(field.related_model, StripeModel):
-			# see also similar login in _get_or_create_from_stripe_object
+			# see also similar logic in _get_or_create_from_stripe_object
 			if isinstance(raw_field_data, str):
 				# A field like {"subscription": "sub_6lsC8pt7IcFpjA", ...}
 				id = raw_field_data
