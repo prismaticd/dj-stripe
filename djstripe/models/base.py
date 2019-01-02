@@ -278,7 +278,7 @@ class StripeModel(models.Model):
 
 		pass
 
-	def _attach_objects_post_save_hook(self, cls, data):
+	def _attach_objects_post_save_hook(self, cls, data, pending_relations=None):
 		"""
 		Gets called by this object's create and sync methods just after save.
 		Use this to populate fields after the model is saved.
@@ -288,7 +288,33 @@ class StripeModel(models.Model):
 		:type data: dict
 		"""
 
-		pass
+		unprocessed_pending_relations = []
+		if pending_relations is not None:
+			for post_save_relation in pending_relations:
+				object_id, field, id = post_save_relation
+
+				if self.id == id:
+					# the target instance now exists
+					target = field.model.objects.get(id=object_id)
+					setattr(target, field.name, self)
+					target.save()
+
+					if django.VERSION < (2, 1):
+						# refresh_from_db doesn't clear related objects cache on django<2.1
+						# instead manually clear the instance cache so refresh_from_db will reload it
+						for field in self._meta.concrete_fields:
+							if field.is_relation and field.is_cached(self):
+								field.delete_cached_value(self)
+
+					# reload so that indirect relations back to this object - eg self.charge.invoice = self are set
+					# TODO - reverse the field reference here to avoid hitting the DB?
+					self.refresh_from_db()
+				else:
+					unprocessed_pending_relations.append(post_save_relation)
+
+			if len(pending_relations) != len(unprocessed_pending_relations):
+				# replace in place
+				pending_relations[:] = unprocessed_pending_relations
 
 	@classmethod
 	def _create_from_stripe_object(
@@ -319,30 +345,7 @@ class StripeModel(models.Model):
 		if save:
 			instance.save(force_insert=True)
 
-		instance._attach_objects_post_save_hook(cls, data)
-
-		unprocessed_pending_relations = []
-		if pending_relations is not None:
-			for post_save_relation in pending_relations:
-				object_id, field, id = post_save_relation
-
-				if instance.id == id:
-					# the target instance now exists
-					target = field.model.objects.get(id=object_id)
-					setattr(target, field.name, instance)
-					target.save()
-
-					if django.VERSION < (2, 1):
-						# refresh_from_db doesn't clear related objects cache on django<2.1
-						instance = instance.__class__.objects.get(id=instance.id)
-					else:
-						instance.refresh_from_db()
-				else:
-					unprocessed_pending_relations.append(post_save_relation)
-
-			if len(pending_relations) != len(unprocessed_pending_relations):
-				# replace in place
-				pending_relations[:] = unprocessed_pending_relations
+		instance._attach_objects_post_save_hook(cls, data, pending_relations=pending_relations)
 
 		return instance
 

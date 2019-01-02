@@ -462,7 +462,9 @@ class Invoice(StripeModel):
 	def get_stripe_dashboard_url(self):
 		return self.customer.get_stripe_dashboard_url()
 
-	def _attach_objects_post_save_hook(self, cls, data):
+	def _attach_objects_post_save_hook(self, cls, data, pending_relations=None):
+		super()._attach_objects_post_save_hook(cls, data, pending_relations=pending_relations)
+
 		# InvoiceItems need a saved invoice because they're associated via a
 		# RelatedManager, so this must be done as part of the post save hook.
 		cls._stripe_object_to_invoice_items(target_cls=InvoiceItem, data=data, invoice=self)

@@ -944,9 +944,11 @@ class Customer(StripeModel):
 		kwargs["customer"] = self
 		return Invoice.upcoming(**kwargs)
 
-	def _attach_objects_post_save_hook(self, cls, data):  # noqa (function complexity)
+	def _attach_objects_post_save_hook(self, cls, data, pending_relations=None):  # noqa (function complexity)
 		from .billing import Coupon
 		from .payment_methods import PaymentMethod
+
+		super()._attach_objects_post_save_hook(cls, data, pending_relations=pending_relations)
 
 		save = False
 
