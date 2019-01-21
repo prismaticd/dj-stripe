@@ -426,6 +426,19 @@ class StripeModel(models.Model):
 			return cls.stripe_objects.get(id=id), False
 
 	@classmethod
+	def _stripe_object_to_customer(cls, target_cls, data):
+		"""
+		Search the given manager for the Customer matching this object's ``customer`` field.
+		:param target_cls: The target class
+		:type target_cls: Customer
+		:param data: stripe object
+		:type data: dict
+		"""
+
+		if "customer" in data and data["customer"]:
+			return target_cls._get_or_create_from_stripe_object(data, "customer")[0]
+
+	@classmethod
 	def _stripe_object_to_invoice_items(cls, target_cls, data, invoice):
 		"""
 		Retrieves InvoiceItems for an invoice.
