@@ -18,12 +18,13 @@ NOTE: global processors are called before other processors.
 import functools
 import itertools
 from collections import defaultdict
+from typing import Callable, DefaultDict, List
 
 __all__ = ["handler", "handler_all", "call_handlers"]
 
 
-registrations = defaultdict(list)
-registrations_global = list()
+registrations = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
+registrations_global = list()  # type: List[Callable]
 
 # Legacy. In previous versions of Stripe API, all test events used this ID.
 # Check out issue #779 for more information.

@@ -533,13 +533,13 @@ class UpcomingInvoice(Invoice):
 
 		return QuerySetMock.from_iterable(InvoiceItem, self._invoiceitems)
 
-	@property
-	def id(self):
-		return None
-
-	@id.setter
-	def id(self, value):
-		return  # noop
+	# @property
+	# def id(self):	# type: ignore
+	# 	return None
+	#
+	# @id.setter
+	# def id(self, value):
+	# 	return  # noop
 
 	def save(self, *args, **kwargs):
 		return  # noop

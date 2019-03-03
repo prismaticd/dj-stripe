@@ -270,10 +270,10 @@ class CountrySpec(StripeModel):
 
 	# Get rid of core common fields
 	djstripe_id = None
-	created = None
+	# created = None
 	description = None
 	livemode = True
-	metadata = None
+	# metadata = None
 
 	class Meta:
 		pass

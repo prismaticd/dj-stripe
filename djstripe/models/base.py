@@ -1,6 +1,7 @@
 import logging
 import uuid
 from datetime import timedelta
+from typing import List
 
 import django
 from django.db import IntegrityError, models
@@ -18,7 +19,7 @@ class StripeModel(models.Model):
 	# This must be defined in descendants of this model/mixin
 	# e.g. Event, Charge, Customer, etc.
 	stripe_class = None
-	expand_fields = []
+	expand_fields = []  # type: List[str]
 	stripe_dashboard_item_name = ""
 
 	objects = models.Manager()
