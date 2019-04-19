@@ -12,7 +12,7 @@ from .utils import convert_tstamp
 if USE_NATIVE_JSONFIELD:
 	from django.contrib.postgres.fields import JSONField as BaseJSONField
 else:
-	from jsonfield import JSONField as BaseJSONField
+	from jsonfield import JSONField as BaseJSONField  # type: ignore
 
 
 class PaymentMethodForeignKey(models.ForeignKey):
