@@ -340,7 +340,7 @@ class SubscriptionAdmin(StripeModelAdmin):
 		for subscription in queryset:
 			subscription.cancel()
 
-	cancel_subscription.short_description = "Cancel selected subscriptions"	# type: ignore
+	cancel_subscription.short_description = "Cancel selected subscriptions"  # type: ignore
 
 	actions = (cancel_subscription,)
 

@@ -2606,7 +2606,7 @@ class Migration(migrations.Migration):
 		migrations.AddField(
 			model_name="customer",
 			name="default_source",
-			field=djstripe.fields.PaymentMethodForeignKey(
+			field=djstripe.fields.PaymentMethodForeignKey(  # type: ignore
 				null=True,
 				on_delete=django.db.models.deletion.SET_NULL,
 				related_name="customers",
@@ -2662,7 +2662,7 @@ class Migration(migrations.Migration):
 		migrations.AddField(
 			model_name="charge",
 			name="source",
-			field=djstripe.fields.PaymentMethodForeignKey(
+			field=djstripe.fields.PaymentMethodForeignKey(  # type: ignore
 				help_text="The source used for this charge.",
 				null=True,
 				on_delete=django.db.models.deletion.SET_NULL,

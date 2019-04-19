@@ -166,7 +166,7 @@ class Charge(StripeModel):
 	)
 	# TODO: review
 	shipping = JSONField(null=True, help_text="Shipping information for the charge")
-	source = PaymentMethodForeignKey(
+	source = PaymentMethodForeignKey(  # type: ignore
 		on_delete=models.SET_NULL,
 		null=True,
 		related_name="charges",
@@ -385,7 +385,7 @@ class Customer(StripeModel):
 		default="",
 		help_text="The currency the customer can be charged in for recurring billing purposes",
 	)
-	default_source = PaymentMethodForeignKey(
+	default_source = PaymentMethodForeignKey(  # type: ignore
 		on_delete=models.SET_NULL, null=True, related_name="customers"
 	)
 	delinquent = models.BooleanField(
