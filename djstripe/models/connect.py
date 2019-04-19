@@ -220,7 +220,7 @@ class ApplicationFeeRefund(StripeModel):
 	Stripe documentation: https://stripe.com/docs/api#fee_refunds
 	"""
 
-	description = None
+	description = None	# type: ignore
 
 	amount = StripeQuantumCurrencyAmountField(help_text="Amount refunded.")
 	balance_transaction = models.ForeignKey(
@@ -244,7 +244,7 @@ class CountrySpec(StripeModel):
 
 	stripe_class = stripe.CountrySpec
 
-	id = models.CharField(max_length=2, primary_key=True, serialize=True)
+	id = models.CharField(max_length=2, primary_key=True, serialize=True)	# type: ignore
 
 	default_currency = StripeCurrencyCodeField(
 		help_text=(
@@ -269,10 +269,10 @@ class CountrySpec(StripeModel):
 	)
 
 	# Get rid of core common fields
-	djstripe_id = None
+	djstripe_id = None	# type: ignore
 	# created = None
-	description = None
-	livemode = True
+	description = None	# type: ignore
+	livemode = True	# type: ignore
 	# metadata = None
 
 	class Meta:
