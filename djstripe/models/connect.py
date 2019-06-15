@@ -90,110 +90,111 @@ class Account(StripeModel):
 	)
 
 	# fields deprecated by Stripe 2019-02-19
-	business_logo = models.ForeignKey("FileUpload", on_delete=models.SET_NULL, null=True)
-	business_name = models.CharField(
-		max_length=255,
-		default="",
-		blank=True,
-		help_text="The publicly visible name of the business",
-	)
-	business_primary_color = models.CharField(
-		max_length=7,
-		default="",
-		blank=True,
-		help_text=(
-			"A CSS hex color value representing the primary branding color for this account"
-		),
-	)
-	business_url = models.CharField(
-		max_length=200,
-		default="",
-		blank=True,
-		help_text=("The publicly visible website of the business"),
-	)
-	debit_negative_balances = models.NullBooleanField(
-		null=True,
-		blank=True,
-		default=False,
-		help_text=(
-			"A Boolean indicating if Stripe should try to reclaim negative "
-			"balances from an attached bank account."
-		),
-	)
-	decline_charge_on = JSONField(
-		null=True,
-		blank=True,
-		help_text=(
-			"Account-level settings to automatically decline certain types "
-			"of charges regardless of the decision of the card issuer"
-		),
-	)
-	display_name = models.CharField(
-		max_length=255,
-		default="",
-		blank=True,
-		help_text=(
-			"The display name for this account. "
-			"This is used on the Stripe Dashboard to differentiate between accounts."
-		),
-	)
-	legal_entity = JSONField(
-		null=True,
-		blank=True,
-		help_text=(
-			"Information about the legal entity itself, including about the associated account representative"
-		),
-	)
-	payout_schedule = JSONField(
-		null=True,
-		blank=True,
-		help_text=(
-			"Details on when funds from charges are available, and when they are paid out to an external account."
-		),
-	)
-	payout_statement_descriptor = models.CharField(
-		max_length=255,
-		default="",
-		blank=True,
-		help_text="The text that appears on the bank account statement for payouts.",
-	)
-	statement_descriptor = models.CharField(
-		max_length=255,
-		default="",
-		blank=True,
-		help_text=(
-			"The default text that appears on credit card statements when a charge is made directly on the account"
-		),
-	)
-	support_email = models.CharField(
-		max_length=255,
-		default="",
-		blank=True,
-		help_text="A publicly shareable support email address for the business",
-	)
-	support_phone = models.CharField(
-		max_length=255,
-		default="",
-		blank=True,
-		help_text="A publicly shareable support phone number for the business",
-	)
-	support_url = models.CharField(
-		max_length=200,
-		default="",
-		blank=True,
-		help_text="A publicly shareable URL that provides support for this account",
-	)
-	timezone = models.CharField(
-		max_length=50, help_text="The timezone used in the Stripe Dashboard for this account."
-	)
-	verification = JSONField(
-		null=True,
-		blank=True,
-		help_text=(
-			"Information on the verification state of the account, "
-			"including what information is needed and by when"
-		),
-	)
+	# TODO - special handling for the file fields?
+	# business_logo = models.ForeignKey("FileUpload", on_delete=models.SET_NULL, null=True)
+	# business_name = models.CharField(
+	# 	max_length=255,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text="The publicly visible name of the business",
+	# )
+	# business_primary_color = models.CharField(
+	# 	max_length=7,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text=(
+	# 		"A CSS hex color value representing the primary branding color for this account"
+	# 	),
+	# )
+	# business_url = models.CharField(
+	# 	max_length=200,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text=("The publicly visible website of the business"),
+	# )
+	# debit_negative_balances = models.NullBooleanField(
+	# 	null=True,
+	# 	blank=True,
+	# 	default=False,
+	# 	help_text=(
+	# 		"A Boolean indicating if Stripe should try to reclaim negative "
+	# 		"balances from an attached bank account."
+	# 	),
+	# )
+	# decline_charge_on = JSONField(
+	# 	null=True,
+	# 	blank=True,
+	# 	help_text=(
+	# 		"Account-level settings to automatically decline certain types "
+	# 		"of charges regardless of the decision of the card issuer"
+	# 	),
+	# )
+	# display_name = models.CharField(
+	# 	max_length=255,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text=(
+	# 		"The display name for this account. "
+	# 		"This is used on the Stripe Dashboard to differentiate between accounts."
+	# 	),
+	# )
+	# legal_entity = JSONField(
+	# 	null=True,
+	# 	blank=True,
+	# 	help_text=(
+	# 		"Information about the legal entity itself, including about the associated account representative"
+	# 	),
+	# )
+	# payout_schedule = JSONField(
+	# 	null=True,
+	# 	blank=True,
+	# 	help_text=(
+	# 		"Details on when funds from charges are available, and when they are paid out to an external account."
+	# 	),
+	# )
+	# payout_statement_descriptor = models.CharField(
+	# 	max_length=255,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text="The text that appears on the bank account statement for payouts.",
+	# )
+	# statement_descriptor = models.CharField(
+	# 	max_length=255,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text=(
+	# 		"The default text that appears on credit card statements when a charge is made directly on the account"
+	# 	),
+	# )
+	# support_email = models.CharField(
+	# 	max_length=255,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text="A publicly shareable support email address for the business",
+	# )
+	# support_phone = models.CharField(
+	# 	max_length=255,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text="A publicly shareable support phone number for the business",
+	# )
+	# support_url = models.CharField(
+	# 	max_length=200,
+	# 	default="",
+	# 	blank=True,
+	# 	help_text="A publicly shareable URL that provides support for this account",
+	# )
+	# timezone = models.CharField(
+	# 	max_length=50, help_text="The timezone used in the Stripe Dashboard for this account."
+	# )
+	# verification = JSONField(
+	# 	null=True,
+	# 	blank=True,
+	# 	help_text=(
+	# 		"Information on the verification state of the account, "
+	# 		"including what information is needed and by when"
+	# 	),
+	# )
 	# end of deprecated by Stripe 2019-02-19
 
 	@classmethod

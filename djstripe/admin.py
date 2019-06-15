@@ -169,10 +169,10 @@ class InvoiceItemInline(admin.StackedInline):
 
 @admin.register(models.Account)
 class AccountAdmin(StripeModelAdmin):
-	list_display = ("business_url", "country", "default_currency")
+	# list_display = ("business_url", "country", "default_currency")
 	list_filter = ("details_submitted",)
-	search_fields = ("business_name", "display_name", "business_url")
-	raw_id_fields = ("business_logo",)
+	# search_fields = ("business_name", "display_name", "business_url")
+	# raw_id_fields = ("business_logo",)
 
 
 @admin.register(models.Charge)
