@@ -18,6 +18,78 @@ class Account(StripeModel):
 
 	stripe_class = stripe.Account
 
+	business_profile = JSONField(
+		null=True, blank=True, help_text=("Optional information related to the business.")
+	)
+	business_type = StripeEnumField(
+		enum=enums.BusinessType, default="", blank=True, help_text="The business type."
+	)
+	charges_enabled = models.BooleanField(
+		help_text="Whether the account can create live charges"
+	)
+	country = models.CharField(max_length=2, help_text="The country of the account")
+	company = JSONField(
+		null=True,
+		blank=True,
+		help_text=(
+			"Information about the company or business. "
+			"This field is null unless business_type is set to company."
+		),
+	)
+	default_currency = StripeCurrencyCodeField(
+		help_text="The currency this account has chosen to use as the default"
+	)
+	details_submitted = models.BooleanField(
+		help_text=(
+			"Whether account details have been submitted. "
+			"Standard accounts cannot receive payouts before this is true."
+		)
+	)
+	email = models.CharField(max_length=255, help_text="The primary user’s email address.")
+	# TODO external_accounts = ...
+	individual = JSONField(
+		null=True,
+		blank=True,
+		help_text=(
+			"Information about the person represented by the account. "
+			"This field is null unless business_type is set to individual."
+		),
+	)
+	payouts_enabled = models.BooleanField(
+		help_text="Whether Stripe can send payouts to this account"
+	)
+	product_description = models.CharField(
+		max_length=255,
+		default="",
+		blank=True,
+		help_text=(
+			"Internal-only description of the product sold or service provided by the business. "
+			"It’s used by Stripe for risk and underwriting purposes."
+		),
+	)
+	requirements = JSONField(
+		null=True,
+		blank=True,
+		help_text=(
+			"Information about the requirements for the account, "
+			"including what information needs to be collected, and by when."
+		),
+	)
+	settings = JSONField(
+		null=True,
+		blank=True,
+		help_text=(
+			"Account options for customizing how the account functions within Stripe."
+		),
+	)
+	type = StripeEnumField(enum=enums.AccountType, help_text="The Stripe account type.")
+	tos_acceptance = JSONField(
+		null=True,
+		blank=True,
+		help_text="Details on the acceptance of the Stripe Services Agreement",
+	)
+
+	# fields deprecated by Stripe 2019-02-19
 	business_logo = models.ForeignKey("FileUpload", on_delete=models.SET_NULL, null=True)
 	business_name = models.CharField(
 		max_length=255,
@@ -39,10 +111,6 @@ class Account(StripeModel):
 		blank=True,
 		help_text=("The publicly visible website of the business"),
 	)
-	charges_enabled = models.BooleanField(
-		help_text="Whether the account can create live charges"
-	)
-	country = models.CharField(max_length=2, help_text="The country of the account")
 	debit_negative_balances = models.NullBooleanField(
 		null=True,
 		blank=True,
@@ -60,15 +128,6 @@ class Account(StripeModel):
 			"of charges regardless of the decision of the card issuer"
 		),
 	)
-	default_currency = StripeCurrencyCodeField(
-		help_text="The currency this account has chosen to use as the default"
-	)
-	details_submitted = models.BooleanField(
-		help_text=(
-			"Whether account details have been submitted. "
-			"Standard accounts cannot receive payouts before this is true."
-		)
-	)
 	display_name = models.CharField(
 		max_length=255,
 		default="",
@@ -78,8 +137,6 @@ class Account(StripeModel):
 			"This is used on the Stripe Dashboard to differentiate between accounts."
 		),
 	)
-	email = models.CharField(max_length=255, help_text="The primary user’s email address.")
-	# TODO external_accounts = ...
 	legal_entity = JSONField(
 		null=True,
 		blank=True,
@@ -99,18 +156,6 @@ class Account(StripeModel):
 		default="",
 		blank=True,
 		help_text="The text that appears on the bank account statement for payouts.",
-	)
-	payouts_enabled = models.BooleanField(
-		help_text="Whether Stripe can send payouts to this account"
-	)
-	product_description = models.CharField(
-		max_length=255,
-		default="",
-		blank=True,
-		help_text=(
-			"Internal-only description of the product sold or service provided by the business. "
-			"It’s used by Stripe for risk and underwriting purposes."
-		),
 	)
 	statement_descriptor = models.CharField(
 		max_length=255,
@@ -141,12 +186,6 @@ class Account(StripeModel):
 	timezone = models.CharField(
 		max_length=50, help_text="The timezone used in the Stripe Dashboard for this account."
 	)
-	type = StripeEnumField(enum=enums.AccountType, help_text="The Stripe account type.")
-	tos_acceptance = JSONField(
-		null=True,
-		blank=True,
-		help_text="Details on the acceptance of the Stripe Services Agreement",
-	)
 	verification = JSONField(
 		null=True,
 		blank=True,
@@ -155,6 +194,7 @@ class Account(StripeModel):
 			"including what information is needed and by when"
 		),
 	)
+	# end of deprecated by Stripe 2019-02-19
 
 	@classmethod
 	def get_connected_account_from_token(cls, access_token):

@@ -1068,22 +1068,34 @@ FAKE_TRANSFER_III = {
 FAKE_ACCOUNT = {
 	"id": "acct_1032D82eZvKYlo2C",
 	"object": "account",
-	"business_logo": "file_1E3fssKatMEEd6736724HYAXyj",
-	"business_name": "dj-stripe",
-	"business_primary_color": "#092e20",
-	"business_url": "https://example.com",
+	"business_profile": {
+		"name": "dj-stripe",
+		"support_email": "djstripe@example.com",
+		"support_phone": None,
+		"support_url": "https://example.com/support/",
+		# TODO - change this since stripe validation actually doesn't allow example.com
+		"url": "https://example.com",
+	},
+	"settings": {
+		"branding": {
+			"icon": None,
+			"logo": "file_1E3fssKatMEEd6736724HYAXyj",
+			"primary_color": "#092e20",
+		},
+		"dashboard": {
+			"display_name": "dj-stripe",
+			"timezone": "Etc/UTC",
+		},
+		"payments": {
+			"statement_descriptor": "DJSTRIPE",
+		}
+	},
 	"charges_enabled": True,
 	"country": "US",
 	"default_currency": "usd",
 	"details_submitted": True,
-	"display_name": "dj-stripe",
 	"email": "djstripe@example.com",
 	"payouts_enabled": True,
-	"statement_descriptor": "DJSTRIPE",
-	"support_email": "djstripe@example.com",
-	"support_phone": None,
-	"support_url": "https://example.com/support/",
-	"timezone": "Etc/UTC",
 	"type": "standard",
 }
 

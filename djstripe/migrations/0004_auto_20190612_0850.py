@@ -2,6 +2,9 @@
 
 from django.db import migrations, models
 
+import djstripe.enums
+import djstripe.fields
+
 
 class Migration(migrations.Migration):
 
@@ -24,6 +27,60 @@ class Migration(migrations.Migration):
 			name="auto_advance",
 			field=models.NullBooleanField(
 				help_text="Controls whether Stripe will perform automatic collection of the invoice. When false, the invoice’s state will not automatically advance without an explicit action."
+			),
+		),
+		migrations.AddField(
+			model_name="account",
+			name="business_profile",
+			field=djstripe.fields.JSONField(
+				blank=True, help_text="Optional information related to the business.", null=True
+			),
+		),
+		migrations.AddField(
+			model_name="account",
+			name="business_type",
+			field=djstripe.fields.StripeEnumField(
+				blank=True,
+				default="",
+				enum=djstripe.enums.BusinessType,
+				help_text="The business type.",
+				max_length=10,
+			),
+		),
+		migrations.AddField(
+			model_name="account",
+			name="company",
+			field=djstripe.fields.JSONField(
+				blank=True,
+				help_text="Information about the company or business. This field is null unless business_type is set to company.",
+				null=True,
+			),
+		),
+		migrations.AddField(
+			model_name="account",
+			name="individual",
+			field=djstripe.fields.JSONField(
+				blank=True,
+				help_text="Information about the person represented by the account. This field is null unless business_type is set to individual.",
+				null=True,
+			),
+		),
+		migrations.AddField(
+			model_name="account",
+			name="requirements",
+			field=djstripe.fields.JSONField(
+				blank=True,
+				help_text="Information about the requirements for the account, including what information needs to be collected, and by when.",
+				null=True,
+			),
+		),
+		migrations.AddField(
+			model_name="account",
+			name="settings",
+			field=djstripe.fields.JSONField(
+				blank=True,
+				help_text="Account options for customizing how the account functions within Stripe.",
+				null=True,
 			),
 		),
 	]

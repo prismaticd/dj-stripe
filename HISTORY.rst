@@ -21,6 +21,10 @@ Changes from API 2018-11-08:
 - Added ``Invoice.auto_advance``, deprecated ``Invoice.closed`` and ``Invoice.forgiven``,
   see https://stripe.com/docs/billing/invoices/migrating-new-invoice-states#autoadvance
 
+Changes from API 2019-02-19:
+
+- Major changes to Account fields, see https://stripe.com/docs/upgrades#2019-02-19
+
 2.0.3 (2019-06-11)
 ------------------
 

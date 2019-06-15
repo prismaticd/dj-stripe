@@ -40,6 +40,9 @@ class TestAccount(AssertStripeFksMixin, TestCase):
 
 		account_retrieve_mock.assert_called_once_with(api_key=STRIPE_SECRET_KEY)
 
+		self.assertGreater(len(account.business_profile), 0)
+		self.assertGreater(len(account.settings), 0)
+
 		self.assert_fks(account, expected_blank_fks={})
 
 	@patch("stripe.Account.retrieve", autospec=IS_STATICMETHOD_AUTOSPEC_SUPPORTED)
