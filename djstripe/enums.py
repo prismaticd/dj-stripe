@@ -596,6 +596,15 @@ class SubscriptionStatus(Enum):
     unpaid = _("Unpaid")
 
 
+class TaxIdType(Enum):
+    au_abn = _("au_abn")
+    eu_vat = _("eu_vat")
+    in_gst = _("in_gst")
+    no_vat = _("no_vat")
+    nz_gst = _("nz_gst")
+    unknown = _("unknown")
+
+
 class DjstripePaymentMethodType(Enum):
     """
     A djstripe-specific enum for the DjStripePaymentMethod model.

@@ -29,6 +29,7 @@ History
 - Dropped previously-deprecated enum ``PaymentMethodType`` (use ``DjstripePaymentMethodType`` instead)
 - Renamed ``Invoice.billing`` to ``.collection_method`` (added deprecated property for the old name).
 - Updated ``Invoice`` model to add missing fields.
+- Added ``TaxRate`` and ``CustomerTaxId`` models (#904)
 - Change urls.py to use the new style urls.
 
 Warning about safe uninstall of jsonfield on upgrade

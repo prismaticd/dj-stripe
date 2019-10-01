@@ -124,6 +124,36 @@ class Coupon(StripeModel):
         )
 
 
+class CustomerTaxId(StripeModel):
+    """
+    You can add one or multiple tax IDs to a customer.
+
+    A customer's tax IDs are displayed on invoices and credit notes issued for
+    the customer.
+
+    Stripe documentation: https://stripe.com/docs/api/customer_tax_ids
+    """
+
+    country = models.CharField(
+        max_length=2,
+        help_text="Two-letter ISO code representing the country of the tax ID.",
+    )
+    customer = models.ForeignKey(
+        "Customer", on_delete=models.CASCADE, related_name="tax_ids"
+    )
+    type = StripeEnumField(
+        enum=enums.TaxIdType,
+        help_text="Type of the tax ID, one of au_abn, eu_vat, in_gst, no_vat, nz_gst, "
+        "or unknown",
+    )
+    value = models.TextField(
+        max_length=5000, default="", blank=True, help_text="Value of the tax ID."
+    )
+    verification = JSONField(
+        null=True, blank=True, help_text="Tax ID verification information."
+    )
+
+
 class Invoice(StripeModel):
     """
     Invoices are statements of what a customer owes for a particular billing
@@ -309,6 +339,7 @@ class Invoice(StripeModel):
         "method in the customer’s invoice settings.",
     )
     # TODO: default_source
+    # TODO: default_tax_rates
     # TODO: discount
     due_date = StripeDateTimeField(
         null=True,
@@ -468,7 +499,11 @@ class Invoice(StripeModel):
         "more information on which threshold rules triggered the invoice.",
     )
     total = StripeDecimalCurrencyAmountField("Total (as decimal) after discount.")
-    # TODO total_tax_amounts
+    total_tax_amounts = JSONField(
+        null=True,
+        blank=True,
+        help_text="The aggregate amounts calculated per tax rate for all line items.",
+    )
     webhooks_delivered_at = StripeDateTimeField(
         null=True,
         help_text=(
@@ -1462,6 +1497,42 @@ class SubscriptionItem(StripeModel):
         on_delete=models.CASCADE,
         related_name="items",
         help_text="The subscription this subscription item belongs to.",
+    )
+
+
+class TaxRate(StripeModel):
+    """
+    Tax rates can be applied to invoices and subscriptions to collect tax.
+
+    Stripe documentation: https://stripe.com/docs/api/tax_rates
+    """
+
+    stripe_class = stripe.TaxRate
+
+    active = models.BooleanField(
+        default=True,
+        help_text="Defaults to true. When set to false, this tax rate cannot be "
+        "applied to objects in the API, but will still be applied to subscriptions "
+        "and invoices that already have it set.",
+    )
+    display_name = models.TextField(
+        max_length=5000,
+        default="",
+        blank=True,
+        help_text="The display name of the tax rates as it will appear to your "
+        "customer on their receipt email, PDF, and the hosted invoice page.",
+    )
+    inclusive = models.BooleanField(
+        help_text="This specifies if the tax rate is inclusive or exclusive."
+    )
+    jurisdiction = models.TextField(
+        max_length=5000,
+        default="",
+        blank=True,
+        help_text="The jurisdiction for the tax rate.",
+    )
+    percentage = StripePercentField(
+        help_text="This represents the tax rate percent out of 100."
     )
 
 
